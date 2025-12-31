@@ -16,9 +16,14 @@ function escapeHtml(value: string): string {
 function renderNode(node: TreeNode): string {
   const classes = `tree-node ${node.type}`;
   const label = escapeHtml(node.name);
-  const children = node.children.length
+  const hasChildren = node.children.length > 0;
+  const children = hasChildren
     ? `<ul>${node.children.map(renderNode).join("")}</ul>`
     : "";
+
+  if (node.type === "folder" && hasChildren) {
+    return `<li class="${classes}" data-type="${node.type}"><details open><summary><span class="tree-label">${label}</span></summary>${children}</details></li>`;
+  }
 
   return `<li class="${classes}" data-type="${node.type}"><span class="tree-label">${label}</span>${children}</li>`;
 }

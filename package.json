@@ -34,6 +34,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/copy-css.mjs",
+    "demo": "pnpm build && node scripts/demo.mjs",
+    "demo:open": "pnpm demo && open demo.html",
     "test": "vitest",
     "lint": "eslint",
     "lint:fix": "eslint --fix",

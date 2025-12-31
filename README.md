@@ -39,10 +39,11 @@ ${html}
 
 ## Static CSS
 
-You can link the default theme directly as a published asset:
+You can link the default theme directly as a published asset.
+For local builds, the stylesheet is emitted to `dist/renderer/tree.css`.
 
 ```html
-<link rel="stylesheet" href="tree.css" />
+<link rel="stylesheet" href="tree-markdown-parser/tree.css" />
 ```
 
 ## API
