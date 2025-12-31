@@ -46,6 +46,6 @@ temp/
 # yarn.lock
 
 # Internal files
-scripts/
+local/
 project_contents.txt
 live.diff

@@ -29,10 +29,11 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./tree.css": "./dist/renderer/tree.css"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-css.mjs",
     "test": "vitest",
     "lint": "eslint",
     "lint:fix": "eslint --fix",

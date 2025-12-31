@@ -4,8 +4,8 @@ Parse fenced `tree` blocks into an AST and render rich HTML (plus optional Merma
 
 ## Install
 
-```
-npm install tree-markdown-parser
+```bash
+pnpm i tree-markdown-parser
 ```
 
 ## Usage
@@ -20,6 +20,29 @@ const input = `src/
 
 const tree = parseTreeBlock(input, { mode: "tolerant" });
 const html = renderHTML(tree);
+```
+
+## HTML Rendering
+
+```ts
+import { renderHTML, defaultTreeTheme } from "tree-markdown-parser";
+
+const html = renderHTML(tree);
+
+const page = `
+<style>
+${defaultTreeTheme}
+</style>
+${html}
+`;
+```
+
+## Static CSS
+
+You can link the default theme directly as a published asset:
+
+```html
+<link rel="stylesheet" href="tree.css" />
 ```
 
 ## API
