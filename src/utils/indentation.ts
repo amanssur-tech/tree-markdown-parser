@@ -21,26 +21,29 @@ export function resolveOptions(options?: ParseOptions): ResolvedOptions {
 }
 
 function throwIfStrict(mode: ParseMode, error: Error | string): void {
-  if (mode === "strict") {
-    if (typeof error === "string") {
-      throw new Error(error);
-    }
-    throw error;
+  if (mode !== "strict") {
+    return;
   }
+  if (typeof error === "string") {
+    throw new TypeError(error);
+  }
+  throw error;
 }
 
-export function parseIndentation(
+function normalizeIndentation(
   rawLine: string,
   options: ResolvedOptions,
   lineNumber: number,
-): IndentParseResult {
-  let line = rawLine;
+): string {
   let idx = 0;
   let hasTab = false;
   let hasSpace = false;
 
-  while (idx < line.length && (line[idx] === " " || line[idx] === "\t")) {
-    if (line[idx] === "\t") {
+  while (
+    idx < rawLine.length &&
+    (rawLine[idx] === " " || rawLine[idx] === "\t")
+  ) {
+    if (rawLine[idx] === "\t") {
       hasTab = true;
     } else {
       hasSpace = true;
@@ -55,76 +58,110 @@ export function parseIndentation(
     );
   }
 
-  if (hasTab) {
-    const leading = line
-      .slice(0, idx)
-      .replace(/\t/g, " ".repeat(options.tabWidth));
-    line = leading + line.slice(idx);
-    idx = leading.length;
+  if (!hasTab) {
+    return rawLine;
   }
 
+  const leading = rawLine
+    .slice(0, idx)
+    .replaceAll("\t", " ".repeat(options.tabWidth));
+  return leading + rawLine.slice(idx);
+}
+
+function readIndentUnits(
+  line: string,
+  options: ResolvedOptions,
+  lineNumber: number,
+): { level: number; cursor: number } {
   let level = 0;
   let cursor = 0;
 
+  const readSpaces = (): number => {
+    let spaceCount = 0;
+    while (cursor < line.length && line[cursor] === " ") {
+      spaceCount += 1;
+      cursor += 1;
+    }
+    return spaceCount;
+  };
+
+  const consumePipeIndent = (): boolean => {
+    cursor += 1;
+    const spaceCount = readSpaces();
+    if (spaceCount === 0) {
+      throwIfStrict(
+        options.mode,
+        new TreeParseError(
+          "Invalid tree prefix after vertical connector",
+          lineNumber,
+        ),
+      );
+    }
+    return true;
+  };
+
+  const consumeSpaceIndent = (): number => {
+    const spaceCount = readSpaces();
+    if (spaceCount % options.indentWidth !== 0) {
+      throwIfStrict(
+        options.mode,
+        new TreeParseError(
+          "Indentation not aligned to indentWidth",
+          lineNumber,
+        ),
+      );
+    }
+    return Math.floor(spaceCount / options.indentWidth);
+  };
+
   while (cursor < line.length) {
     if (line[cursor] === "│") {
-      cursor += 1;
-      let spaceCount = 0;
-      while (cursor < line.length && line[cursor] === " ") {
-        spaceCount += 1;
-        cursor += 1;
+      if (consumePipeIndent()) {
+        level += 1;
       }
-      if (spaceCount === 0) {
-        throwIfStrict(
-          options.mode,
-          new TreeParseError(
-            "Invalid tree prefix after vertical connector",
-            lineNumber,
-          ),
-        );
-      }
-      level += 1;
       continue;
     }
 
     if (line[cursor] === " ") {
-      let spaceCount = 0;
-      while (cursor < line.length && line[cursor] === " ") {
-        spaceCount += 1;
-        cursor += 1;
-      }
-      if (spaceCount % options.indentWidth !== 0) {
-        throwIfStrict(
-          options.mode,
-          new TreeParseError(
-            "Indentation not aligned to indentWidth",
-            lineNumber,
-          ),
-        );
-      }
-      level += Math.floor(spaceCount / options.indentWidth);
+      level += consumeSpaceIndent();
       continue;
     }
 
     break;
   }
 
-  let sawBranch = false;
-  if (line[cursor] === "├" || line[cursor] === "└") {
-    sawBranch = true;
-    cursor += 1;
-    while (line[cursor] === "─" || line[cursor] === "-") {
-      cursor += 1;
-    }
-    if (line[cursor] === " ") {
-      cursor += 1;
-    }
+  return { level, cursor };
+}
+
+function readBranchPrefix(
+  line: string,
+  cursor: number,
+): { levelBoost: number; cursor: number } {
+  if (line[cursor] !== "├" && line[cursor] !== "└") {
+    return { levelBoost: 0, cursor };
   }
 
-  if (sawBranch) {
-    level += 1;
+  let next = cursor + 1;
+  while (line[next] === "─" || line[next] === "-") {
+    next += 1;
+  }
+  if (line[next] === " ") {
+    next += 1;
   }
 
+  return { levelBoost: 1, cursor: next };
+}
+
+export function parseIndentation(
+  rawLine: string,
+  options: ResolvedOptions,
+  lineNumber: number,
+): IndentParseResult {
+  const line = normalizeIndentation(rawLine, options, lineNumber);
+  const indent = readIndentUnits(line, options, lineNumber);
+  const branch = readBranchPrefix(line, indent.cursor);
+  const level = indent.level + branch.levelBoost;
+  const cursor = branch.cursor;
   const content = line.slice(cursor).trim();
 
   if (!content) {

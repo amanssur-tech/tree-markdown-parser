@@ -13,20 +13,17 @@ interface WorkingNode {
   children: WorkingNode[];
 }
 
-function hasFileExtension(name: string): boolean {
-  const dotIndex = name.lastIndexOf(".");
-  return dotIndex > 0 && dotIndex < name.length - 1;
-}
-
 function isAllCaps(name: string): boolean {
   const trimmed = name.trim();
   const spaceIndex = trimmed.indexOf(" ");
   const parenIndex = trimmed.indexOf("(");
-  const splitIndexCandidates = [spaceIndex, parenIndex].filter(index => index >= 0);
+  const splitIndexCandidates = [spaceIndex, parenIndex].filter(
+    (index) => index >= 0,
+  );
   const splitIndex =
     splitIndexCandidates.length > 0 ? Math.min(...splitIndexCandidates) : -1;
   const prefix = splitIndex >= 0 ? trimmed.slice(0, splitIndex) : trimmed;
-  const letters = prefix.replace(/[^A-Za-z]/g, "");
+  const letters = prefix.replaceAll(/[^A-Za-z]/g, "");
   return letters.length > 0 && letters === letters.toUpperCase();
 }
 

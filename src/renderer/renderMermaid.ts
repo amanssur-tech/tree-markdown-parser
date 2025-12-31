@@ -1,7 +1,7 @@
 import { TreeNode } from "../types/tree.js";
 
 function escapeLabel(value: string): string {
-  return value.replace(/"/g, '\\"');
+  return value.replaceAll('"', String.raw`\"`);
 }
 
 export function renderMermaid(nodes: TreeNode[]): string {

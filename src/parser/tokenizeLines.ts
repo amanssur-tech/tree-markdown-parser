@@ -16,11 +16,7 @@ export function tokenizeLines(
     }
 
     const lineNumber = index + 1;
-    const { level, content } = parseIndentation(
-      rawLine,
-      resolved,
-      lineNumber,
-    );
+    const { level, content } = parseIndentation(rawLine, resolved, lineNumber);
     const explicitFolder = content.endsWith("/");
     const name = explicitFolder ? content.slice(0, -1).trim() : content.trim();
 

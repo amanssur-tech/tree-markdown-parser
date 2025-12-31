@@ -14,7 +14,9 @@ const args = new Set(argv);
 const inputIndex = argv.indexOf("--input");
 const outputIndex = argv.indexOf("--output");
 const inputPath =
-  inputIndex >= 0 && argv[inputIndex + 1] ? argv[inputIndex + 1] : "demo/demo.md";
+  inputIndex >= 0 && argv[inputIndex + 1]
+    ? argv[inputIndex + 1]
+    : "demo/demo.md";
 const outputPath =
   outputIndex >= 0 && argv[outputIndex + 1]
     ? argv[outputIndex + 1]
@@ -54,16 +56,16 @@ await render();
 
 if (shouldOpen) {
   const quoted = `"${outputPath}"`;
-  const command =
-    process.platform === "darwin"
-      ? `open ${quoted}`
-      : process.platform === "win32"
-        ? `start ${quoted}`
-        : `xdg-open ${quoted}`;
+  let command = `xdg-open ${quoted}`;
+  if (process.platform === "darwin") {
+    command = `open ${quoted}`;
+  } else if (process.platform === "win32") {
+    command = `start ${quoted}`;
+  }
   exec(command);
 }
 
-watch(resolve(inputPath), { persistent: true }, async eventType => {
+watch(resolve(inputPath), { persistent: true }, async (eventType) => {
   if (eventType === "change") {
     await render();
   }
