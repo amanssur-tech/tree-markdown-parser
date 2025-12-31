@@ -1,0 +1,86 @@
+export const defaultTreeTheme = String.raw`
+.tree {
+  --tree-font: "IBM Plex Mono", "Courier New", monospace;
+  --tree-text: #1b1b1b;
+  --tree-muted: #7a7a7a;
+  --tree-accent: #3a6ea5;
+  --tree-bg: #f7f5f1;
+  --tree-border: #e4ded6;
+  --tree-indent: 1.1rem;
+  --tree-radius: 10px;
+
+  font-family: var(--tree-font);
+  color: var(--tree-text);
+  background: linear-gradient(180deg, #fcfbf9 0%, var(--tree-bg) 100%);
+  border: 1px solid var(--tree-border);
+  border-radius: var(--tree-radius);
+  padding: 1rem 1.25rem;
+  list-style: none;
+}
+
+.tree ul {
+  list-style: none;
+  margin: 0.25rem 0 0 0;
+  padding: 0 0 0 var(--tree-indent);
+  border-left: 1px dashed var(--tree-border);
+}
+
+.tree-node {
+  position: relative;
+  margin: 0.15rem 0;
+}
+
+.tree-node::before {
+  content: "";
+  position: absolute;
+  left: -0.9rem;
+  top: 0.85rem;
+  width: 0.7rem;
+  height: 1px;
+  background: var(--tree-border);
+}
+
+.tree-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 6px;
+  line-height: 1.45;
+}
+
+.tree-node.folder > .tree-label {
+  color: var(--tree-accent);
+  font-weight: 600;
+}
+
+.tree-node.folder > .tree-label::before {
+  content: "▸";
+  color: var(--tree-muted);
+}
+
+.tree-node.file > .tree-label::before {
+  content: "•";
+  color: var(--tree-muted);
+}
+
+.tree-node.folder > ul {
+  margin-top: 0.35rem;
+}
+
+.tree-node.file > .tree-label {
+  color: var(--tree-text);
+}
+
+.tree[data-compact="true"] {
+  --tree-indent: 0.85rem;
+  padding: 0.75rem 1rem;
+}
+
+@media print {
+  .tree {
+    background: #ffffff;
+    border-color: #d0d0d0;
+  }
+}
+`;
