@@ -60,6 +60,35 @@ describe("parseTreeBlock", () => {
     expect(page.name).toBe("page.tsx");
   });
 
+  it("treats all-caps leaf nodes as files", () => {
+    const tree = parseTreeBlock("LICENSE");
+    const root = tree.at(0);
+    expect(root).toBeDefined();
+    if (!root) {
+      throw new Error("Expected root node to exist");
+    }
+    expect(root.type).toBe("file");
+  });
+
+  it("treats childless non-caps nodes without dots as folders", () => {
+    const tree = parseTreeBlock("assets");
+    const root = tree.at(0);
+    expect(root).toBeDefined();
+    if (!root) {
+      throw new Error("Expected root node to exist");
+    }
+    expect(root.type).toBe("folder");
+  });
+
+  it("treats all-caps prefixes followed by space or parentheses as files", () => {
+    const tree = parseTreeBlock(
+      "LICENSE (draft)\nLICENSE(draft)\nLICENSE draft",
+    );
+    expect(tree[0]?.type).toBe("file");
+    expect(tree[1]?.type).toBe("file");
+    expect(tree[2]?.type).toBe("file");
+  });
+
   it("rejects mixed tabs and spaces in strict mode", () => {
     const input = "src/\n\t  app/";
     expect(() => parseTreeBlock(input, { mode: "strict" })).toThrow();

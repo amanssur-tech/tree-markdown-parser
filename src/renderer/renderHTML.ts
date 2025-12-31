@@ -21,7 +21,7 @@ function renderNode(node: TreeNode): string {
     ? `<ul>${node.children.map(renderNode).join("")}</ul>`
     : "";
 
-  if (node.type === "folder" && hasChildren) {
+  if (node.type === "folder") {
     return `<li class="${classes}" data-type="${node.type}"><details open><summary><span class="tree-label">${label}</span></summary>${children}</details></li>`;
   }
 

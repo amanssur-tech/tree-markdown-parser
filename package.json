@@ -39,7 +39,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/copy-css.mjs",
     "preview": "pnpm build && node scripts/preview.mjs",
-    "preview:dev": "pnpm build && node scripts/preview-watch.mjs --open",
+    "dev": "pnpm build && node scripts/preview-watch.mjs --open",
     "test": "vitest",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
