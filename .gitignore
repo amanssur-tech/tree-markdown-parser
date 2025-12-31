@@ -6,6 +6,9 @@ dist/
 demo-preview.html
 *.tsbuildinfo
 
+# pnpm store
+.pnpm-store/
+
 # Test coverage
 coverage/
 .nyc_output/
