@@ -1,0 +1,57 @@
+{
+  "name": "tree-markdown-parser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Parse fenced tree blocks into an AST and render rich HTML or other outputs.",
+  "type": "module",
+  "keywords": [
+    "markdown",
+    "markdown-parser",
+    "tree",
+    "file-tree",
+    "directory-tree",
+    "ast",
+    "parser",
+    "documentation",
+    "html-renderer",
+    "developer-tools"
+  ],
+  "author": "Amanullah Manssur",
+  "license": "MIT",
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "check": "pnpm lint && pnpm typecheck",
+    "prettier": "prettier --write .",
+    "contents": "scripts/project_contents.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^24.10.4",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.51.0",
+    "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "eslint-plugin-unused-imports": "^4.3.0"
+  }
+}

@@ -1,0 +1,50 @@
+# Node
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Environment files (ignore local secrets; keep .env.example if you have one)
+.env.local
+.env.*.local
+.envrc
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Caches and temp
+.cache/
+.vite/
+.parcel-cache/
+node_modules/.cache/
+
+# Misc
+tmp/
+temp/
+
+# Uncomment the following line if you want to ignore package lockfiles (usually not recommended)
+# package-lock.json
+# pnpm-lock.yaml
+# yarn.lock
+
+# Internal files
+scripts/
+project_contents.txt
