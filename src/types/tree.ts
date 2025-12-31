@@ -18,4 +18,5 @@ export interface LineToken {
   name: string;
   level: number;
   explicitFolder: boolean;
+  line: number;
 }

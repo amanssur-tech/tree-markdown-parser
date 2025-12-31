@@ -1,4 +1,5 @@
 import { ParseOptions, ParseMode } from "../types/tree.js";
+import { TreeParseError } from "../types/errors.js";
 
 export interface ResolvedOptions {
   mode: ParseMode;
@@ -19,15 +20,19 @@ export function resolveOptions(options?: ParseOptions): ResolvedOptions {
   };
 }
 
-function throwIfStrict(mode: ParseMode, message: string): void {
+function throwIfStrict(mode: ParseMode, error: Error | string): void {
   if (mode === "strict") {
-    throw new Error(message);
+    if (typeof error === "string") {
+      throw new Error(error);
+    }
+    throw error;
   }
 }
 
 export function parseIndentation(
   rawLine: string,
   options: ResolvedOptions,
+  lineNumber: number,
 ): IndentParseResult {
   let line = rawLine;
   let idx = 0;
@@ -44,7 +49,10 @@ export function parseIndentation(
   }
 
   if (hasTab && hasSpace) {
-    throwIfStrict(options.mode, "Mixed tabs and spaces in indentation");
+    throwIfStrict(
+      options.mode,
+      new TreeParseError("Mixed tabs and spaces in indentation", lineNumber),
+    );
   }
 
   if (hasTab) {
@@ -69,7 +77,10 @@ export function parseIndentation(
       if (spaceCount === 0) {
         throwIfStrict(
           options.mode,
-          "Invalid tree prefix after vertical connector",
+          new TreeParseError(
+            "Invalid tree prefix after vertical connector",
+            lineNumber,
+          ),
         );
       }
       level += 1;
@@ -83,7 +94,13 @@ export function parseIndentation(
         cursor += 1;
       }
       if (spaceCount % options.indentWidth !== 0) {
-        throwIfStrict(options.mode, "Indentation not aligned to indentWidth");
+        throwIfStrict(
+          options.mode,
+          new TreeParseError(
+            "Indentation not aligned to indentWidth",
+            lineNumber,
+          ),
+        );
       }
       level += Math.floor(spaceCount / options.indentWidth);
       continue;
@@ -111,7 +128,10 @@ export function parseIndentation(
   const content = line.slice(cursor).trim();
 
   if (!content) {
-    throwIfStrict(options.mode, "Empty tree line");
+    throwIfStrict(
+      options.mode,
+      new TreeParseError("Empty tree line", lineNumber),
+    );
   }
 
   return { level, content };

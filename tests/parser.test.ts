@@ -64,4 +64,9 @@ describe("parseTreeBlock", () => {
     const input = "src/\n\t  app/";
     expect(() => parseTreeBlock(input, { mode: "strict" })).toThrow();
   });
+
+  it("reports line numbers on indentation errors", () => {
+    const input = "src/\n\t  app/";
+    expect(() => parseTreeBlock(input, { mode: "strict" })).toThrow("Line 2");
+  });
 });

@@ -4,6 +4,7 @@ export { buildTree } from "./parser/buildTree.js";
 export { renderHTML } from "./renderer/renderHTML.js";
 export { renderMermaid } from "./renderer/renderMermaid.js";
 export { renderText } from "./renderer/renderText.js";
+export { TreeParseError } from "./types/errors.js";
 export type {
   ParseOptions,
   TreeNode,

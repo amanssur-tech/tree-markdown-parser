@@ -5,6 +5,7 @@ import {
   TreeNodeType,
 } from "../types/tree.js";
 import { resolveOptions } from "../utils/indentation.js";
+import { TreeParseError } from "../types/errors.js";
 
 interface WorkingNode {
   name: string;
@@ -49,7 +50,7 @@ export function buildTree(
 
     if (level > stack.length) {
       if (resolved.mode === "strict") {
-        throw new Error("Non-monotonic indentation");
+        throw new TreeParseError("Non-monotonic indentation", token.line);
       }
       level = stack.length;
     }
@@ -69,7 +70,7 @@ export function buildTree(
     } else {
       const parent = stack.at(-1);
       if (!parent) {
-        throw new Error("Invalid tree structure");
+        throw new TreeParseError("Invalid tree structure", token.line);
       }
       parent.children.push(node);
     }
