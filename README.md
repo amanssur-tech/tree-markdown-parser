@@ -37,6 +37,8 @@ ${html}
 `;
 ```
 
+Note: folders with children render as native `<details>/<summary>` elements, so they are collapsible by default and should work in most Markdown/PDF renderers without JavaScript.
+
 ## Static CSS
 
 You can link the default theme directly as a published asset.
@@ -44,6 +46,32 @@ For local builds, the stylesheet is emitted to `dist/renderer/tree.css`.
 
 ```html
 <link rel="stylesheet" href="tree-markdown-parser/tree.css" />
+```
+
+## Remark plugin
+
+```ts
+import remarkTreeMarkdown from "tree-markdown-parser/remark";
+import rehypeRaw from "rehype-raw";
+import remark from "remark";
+
+remark().use(remarkTreeMarkdown).use(rehypeRaw);
+```
+
+The plugin transforms fenced ```tree blocks into HTML.
+Depending on your pipeline, you may need `rehype-raw` enabled to allow raw HTML.
+Include the stylesheet manually as shown above.
+
+To preview a Markdown file locally with the plugin, run:
+
+```bash
+pnpm preview
+```
+
+To build, open, and rebuild on every change to the Markdown file, run:
+
+```bash
+pnpm preview:dev
 ```
 
 ## API
