@@ -62,6 +62,14 @@ The plugin transforms fenced ```tree blocks into HTML.
 Depending on your pipeline, you may need `rehype-raw` enabled to allow raw HTML.
 Include the stylesheet manually as shown above.
 
+VS Code’s built-in Markdown preview ignores inline `<style>` tags, so use the `markdown.styles` setting to load the CSS file:
+
+```json
+{
+  "markdown.styles": ["/absolute/path/to/tree.css"]
+}
+```
+
 To preview a Markdown file locally with the plugin, run:
 
 ```bash
@@ -71,7 +79,21 @@ pnpm preview
 To build, open, and rebuild on every change to the Markdown file, run:
 
 ```bash
-pnpm preview:dev
+pnpm dev
+```
+
+## CLI Preprocessor
+
+Replace fenced ```tree blocks with rendered HTML:
+
+```bash
+tmd -i README.md -o README.rendered.md
+```
+
+Render trees as plain text instead:
+
+```bash
+tmd --text < README.md > README.rendered.md
 ```
 
 ## API

@@ -1,7 +1,6 @@
 {
   "name": "tree-markdown-parser",
   "version": "0.1.0",
-  "private": true,
   "description": "Parse fenced tree blocks into an AST and render rich HTML or other outputs.",
   "type": "module",
   "keywords": [
@@ -34,12 +33,21 @@
     "./remark": {
       "types": "./dist/remark/remarkTreeMarkdown.d.ts",
       "default": "./dist/remark/remarkTreeMarkdown.js"
+    },
+    "./preprocess": {
+      "types": "./dist/cli/preprocess.d.ts",
+      "default": "./dist/cli/preprocess.js"
     }
+  },
+  "bin": {
+    "tmd": "./dist/cli/preprocess.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/copy-css.mjs",
     "preview": "pnpm build && node scripts/preview.mjs",
     "dev": "pnpm build && node scripts/preview-watch.mjs --open",
+    "tmd": "pnpm build && node dist/cli/preprocess.js",
+    "tmd:demo": "pnpm tmd -- --input demo/demo.md --output demo/demo.rendered.md",
     "test": "vitest",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
