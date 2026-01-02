@@ -62,7 +62,7 @@ The plugin transforms fenced ```tree blocks into HTML.
 Depending on your pipeline, you may need `rehype-raw` enabled to allow raw HTML.
 Include the stylesheet manually as shown above.
 
-VS Code’s built-in Markdown preview ignores inline `<style>` tags, so use the `markdown.styles` setting to load the CSS file:
+VS Code’s built-in Markdown preview ignores inline `<style>` tags. Without the extension, use the `markdown.styles` setting to load the CSS file:
 
 ```json
 {
@@ -81,6 +81,8 @@ const md = new MarkdownIt({ html: true }).use(markdownItTree);
 
 The markdown-it plugin can be used in markdown-it based pipelines.
 VS Code’s built-in Markdown preview requires a VS Code extension to load custom plugins.
+
+For VS Code preview integration, use the extension in `vscode/`. It injects `tree.css` and swaps fenced `tree` blocks in the preview using a preview script.
 
 ## Local preview
 

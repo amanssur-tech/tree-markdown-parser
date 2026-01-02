@@ -5,7 +5,13 @@ import unusedImports from "eslint-plugin-unused-imports";
 
 export default defineConfig([
   {
-    ignores: ["dist/**", "node_modules/**", "out/**", "build/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "out/**",
+      "build/**",
+      "vscode/out/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -27,6 +33,15 @@ export default defineConfig([
       globals: {
         process: "readonly",
         console: "readonly",
+      },
+    },
+  },
+  {
+    files: ["vscode/media/**/*.js"],
+    languageOptions: {
+      globals: {
+        document: "readonly",
+        window: "readonly",
       },
     },
   },

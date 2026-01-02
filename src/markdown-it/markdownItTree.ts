@@ -10,7 +10,7 @@ interface MarkdownItInstance {
         idx: number,
         options: unknown,
         env: unknown,
-        self: unknown,
+        self: { renderToken: (t: unknown, i: number, o: unknown) => string },
       ) => string;
     };
   };
@@ -34,7 +34,13 @@ export function markdownItTree(
 ): void {
   const fallbackFence = md.renderer.rules.fence;
 
-  md.renderer.rules.fence = (tokens, idx, fenceOptions, env, self) => {
+  const fenceRule = (
+    tokens: Array<{ info?: string; content?: string }>,
+    idx: number,
+    fenceOptions: unknown,
+    env: unknown,
+    self: { renderToken: (t: unknown, i: number, o: unknown) => string },
+  ): string => {
     const token = tokens[idx];
     if (!token) {
       if (fallbackFence) {
@@ -51,14 +57,9 @@ export function markdownItTree(
     if (fallbackFence) {
       return fallbackFence(tokens, idx, fenceOptions, env, self);
     }
-    if (typeof self === "object" && self !== null && "renderToken" in self) {
-      const renderer = self as {
-        renderToken: (t: unknown, i: number, o: unknown) => string;
-      };
-      return renderer.renderToken(tokens, idx, fenceOptions);
-    }
-    return "";
+    return self.renderToken(tokens, idx, fenceOptions);
   };
+  md.renderer.rules.fence = fenceRule;
 }
 
 export default markdownItTree;
