@@ -37,6 +37,10 @@
     "./preprocess": {
       "types": "./dist/cli/preprocess.d.ts",
       "default": "./dist/cli/preprocess.js"
+    },
+    "./markdown-it": {
+      "types": "./dist/markdown-it/markdownItTree.d.ts",
+      "default": "./dist/markdown-it/markdownItTree.js"
     }
   },
   "bin": {

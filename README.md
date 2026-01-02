@@ -70,13 +70,27 @@ VS Code’s built-in Markdown preview ignores inline `<style>` tags, so use the 
 }
 ```
 
-To preview a Markdown file locally with the plugin, run:
+## Markdown-it plugin
+
+```ts
+import MarkdownIt from "markdown-it";
+import markdownItTree from "tree-markdown-parser/markdown-it";
+
+const md = new MarkdownIt({ html: true }).use(markdownItTree);
+```
+
+The markdown-it plugin can be used in markdown-it based pipelines.
+VS Code’s built-in Markdown preview requires a VS Code extension to load custom plugins.
+
+## Local preview
+
+To render a Markdown file to HTML locally (browser preview), run:
 
 ```bash
 pnpm preview
 ```
 
-To build, open, and rebuild on every change to the Markdown file, run:
+To build, open, and rebuild the HTML on every Markdown change (browser preview), run:
 
 ```bash
 pnpm dev
