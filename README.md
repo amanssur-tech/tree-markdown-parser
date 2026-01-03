@@ -133,6 +133,22 @@ Render HTML without any CSS injection (recommended for GitHub):
 tmd --html-only -i README.md -o README.rendered.md
 ```
 
+### Pandoc integration
+
+Run Pandoc through `tmd` with automatic preprocessing and CSS:
+
+```bash
+tmd README.md --to html
+tmd README.md --to pdf -o README.pdf
+```
+
+Notes:
+- Replace `html` with any Pandoc-supported format (pdf, docx, latex, etc.).
+- `-o/--output` is optional for any format; the default is the same folder/name with the new extension.
+- `tmd --to pdf` defaults to `--pdf-engine=wkhtmltopdf` for HTML-based PDFs.
+- PDF output requires both Pandoc and `wkhtmltopdf` to be installed.
+- Extra Pandoc flags can be passed after `--`, for example: `tmd README.md --to pdf -- --pdf-engine=weasyprint`.
+
 ## API
 
 - `parseTreeBlock(input, options)` -> `TreeNode[]`
