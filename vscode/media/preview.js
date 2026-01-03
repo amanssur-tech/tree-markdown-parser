@@ -168,6 +168,22 @@
     return `<ul class="tree">${nodes.map(renderNode).join("")}</ul>`;
   };
 
+  const renderText = (nodes) => {
+    const lines = [];
+    const walk = (node, depth) => {
+      const indent = "  ".repeat(depth);
+      const label = node.type === "folder" ? `${node.name}/` : node.name;
+      lines.push(`${indent}- ${label}`);
+      for (const child of node.children) {
+        walk(child, depth + 1);
+      }
+    };
+    for (const node of nodes) {
+      walk(node, 0);
+    }
+    return lines.join("\n");
+  };
+
   const replaceBlocks = () => {
     const blocks = document.querySelectorAll(
       "code.language-tree, code.lang-tree",
@@ -176,11 +192,51 @@
       const pre = code.closest("pre");
       if (!pre || pre.dataset.treeProcessed === "true") return;
       const raw = code.textContent ?? "";
-      const tree = parseTreeBlock(raw);
-      const html = renderHTML(tree);
+      let tree;
+      try {
+        tree = parseTreeBlock(raw);
+      } catch {
+        return;
+      }
+      let html;
+      try {
+        html = renderHTML(tree);
+      } catch {
+        const text = renderText(tree);
+        html = `<pre class="tree-text"><code>${escapeHtml(
+          text,
+        )}</code></pre>`;
+      }
       const wrapper = document.createElement("div");
       wrapper.innerHTML = html;
       pre.replaceWith(wrapper.firstElementChild ?? wrapper);
+    });
+  };
+
+  const setupObserver = () => {
+    let timerId = null;
+    const scheduleReplace = () => {
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
+      timerId = window.setTimeout(() => {
+        replaceBlocks();
+        timerId = null;
+      }, 60);
+    };
+    const observer = new MutationObserver((mutations) => {
+      const shouldRefresh = mutations.some(
+        (mutation) =>
+          mutation.type === "childList" || mutation.type === "characterData",
+      );
+      if (shouldRefresh) {
+        scheduleReplace();
+      }
+    });
+    observer.observe(document.body, {
+      childList: true,
+      characterData: true,
+      subtree: true,
     });
   };
 
@@ -191,4 +247,5 @@
   } else {
     replaceBlocks();
   }
+  setupObserver();
 })();

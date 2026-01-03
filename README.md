@@ -106,10 +106,31 @@ Replace fenced ```tree blocks with rendered HTML:
 tmd -i README.md -o README.rendered.md
 ```
 
+The preprocessor injects an inline `<style>` tag at the top of the output and adds a `<link rel="stylesheet" href="tree.css" />` fallback (unless one already exists).
+For GitHub or other renderers that strip CSS and show `<style>` as text, use `--html-only` to emit HTML without CSS injection.
+
+How to use it:
+
+- If your Markdown previewer supports inline `<style>` blocks, you are done. The output renders without extra files.
+- If your previewer strips inline styles, copy `tree.css` next to the output file (or update the link to your preferred path).
+
+Custom styling:
+
+- Edit the inline `<style>` block in the output Markdown, or
+- Edit `tree.css` if your previewer only allows linked stylesheets.
+
+If you need SVG/PNG output of a tree (e.g. for embedding into markdown files that don’t support HTML), copy the rendered HTML + CSS into a standalone HTML file and export via Pandoc, Playwright, or your browser’s print/export tools.
+
 Render trees as plain text instead:
 
 ```bash
 tmd --text < README.md > README.rendered.md
+```
+
+Render HTML without any CSS injection (recommended for GitHub):
+
+```bash
+tmd --html-only -i README.md -o README.rendered.md
 ```
 
 ## API

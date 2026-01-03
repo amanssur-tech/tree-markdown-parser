@@ -3,15 +3,17 @@ import { readFile, writeFile } from "node:fs/promises";
 import { parseTreeBlock } from "../parser/parseTreeBlock.js";
 import { renderHTML } from "../renderer/renderHTML.js";
 import { renderText } from "../renderer/renderText.js";
+import { defaultTreeTheme } from "../renderer/defaultTheme.js";
 
 interface CliOptions {
   input?: string;
   output?: string;
   text: boolean;
+  htmlOnly: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { text: false };
+  const options: CliOptions = { text: false, htmlOnly: false };
   const remaining = [...argv];
 
   while (remaining.length > 0) {
@@ -21,6 +23,10 @@ function parseArgs(argv: string[]): CliOptions {
     }
     if (arg === "--text") {
       options.text = true;
+      continue;
+    }
+    if (arg === "--html-only") {
+      options.htmlOnly = true;
       continue;
     }
     if (arg === "--input" || arg === "-i") {
@@ -51,6 +57,7 @@ Options:
   -i, --input   Input markdown file (defaults to stdin)
   -o, --output  Output markdown file (defaults to stdout)
   --text        Render tree blocks as plain text fenced blocks
+  --html-only   Render HTML without injecting CSS (useful for GitHub)
   -h, --help    Show this help message
 `);
 }
@@ -105,6 +112,32 @@ function renderReplacement(rawTree: string, options: CliOptions): string[] {
   return [renderHTML(tree)];
 }
 
+const cssStyleTag = `<style data-tree-markdown="true">\n${defaultTreeTheme}\n</style>`;
+const cssLinkTag =
+  '<link rel="stylesheet" href="tree.css" data-tree-markdown="true" />';
+
+function shouldInjectCss(markdown: string, options: CliOptions): boolean {
+  if (options.text || options.htmlOnly) {
+    return false;
+  }
+  return !markdown.includes('data-tree-markdown="true"');
+}
+
+function injectCss(markdown: string): string {
+  const lines = markdown.split(/\r?\n/);
+  if (lines[0] === "---") {
+    const closingIndex = lines.findIndex(
+      (line, index) => index > 0 && line === "---",
+    );
+    if (closingIndex !== -1) {
+      lines.splice(closingIndex + 1, 0, cssStyleTag, cssLinkTag, "");
+      return lines.join("\n");
+    }
+  }
+  lines.unshift(cssStyleTag, cssLinkTag, "");
+  return lines.join("\n");
+}
+
 function replaceTreeBlocks(markdown: string, options: CliOptions): string {
   const output: string[] = [];
   const remaining = markdown.split(/\r?\n/);
@@ -128,7 +161,8 @@ function replaceTreeBlocks(markdown: string, options: CliOptions): string {
     output.push(...renderReplacement(content.content, options));
   }
 
-  return output.join("\n");
+  const replaced = output.join("\n");
+  return shouldInjectCss(markdown, options) ? injectCss(replaced) : replaced;
 }
 
 async function run(): Promise<void> {
