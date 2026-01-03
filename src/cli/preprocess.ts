@@ -2,7 +2,7 @@
 import { readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, parse, resolve } from "node:path";
+import { dirname, join, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseTreeBlock } from "../parser/parseTreeBlock.js";
 import { renderHTML } from "../renderer/renderHTML.js";
@@ -16,6 +16,9 @@ interface CliOptions {
   htmlOnly: boolean;
   to?: string;
   pandocArgs: string[];
+  styles: string[];
+  noStyle: boolean;
+  verbose: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -23,6 +26,9 @@ function parseArgs(argv: string[]): CliOptions {
     text: false,
     htmlOnly: false,
     pandocArgs: [],
+    styles: [],
+    noStyle: false,
+    verbose: false,
   };
   const remaining = [...argv];
 
@@ -41,6 +47,22 @@ function parseArgs(argv: string[]): CliOptions {
     }
     if (arg === "--html-only") {
       options.htmlOnly = true;
+      continue;
+    }
+    if (arg === "--style") {
+      const value = remaining.shift();
+      if (!value) {
+        throw new Error("--style requires a file path");
+      }
+      options.styles.push(value);
+      continue;
+    }
+    if (arg === "--no-style") {
+      options.noStyle = true;
+      continue;
+    }
+    if (arg === "--verbose") {
+      options.verbose = true;
       continue;
     }
     if (arg === "--to" || arg === "-t") {
@@ -92,6 +114,9 @@ Options:
   -t, --to      Run Pandoc with the given output format
   --text        Render tree blocks as plain text fenced blocks
   --html-only   Render HTML without injecting CSS (useful for GitHub)
+  --style       Append a custom CSS file after defaults in Pandoc mode
+  --no-style    Disable all CSS in Pandoc mode
+  --verbose     Show all Pandoc/WeasyPrint warnings
   -h, --help    Show this help message
 `);
 }
@@ -155,6 +180,10 @@ const pandocCssPath = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../renderer/tree.css",
 );
+const pandocDocCssPath = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../renderer/tmd-doc.css",
+);
 
 function shouldInjectCss(markdown: string, options: CliOptions): boolean {
   if (options.text || options.htmlOnly) {
@@ -213,6 +242,10 @@ function hasPdfEngineArg(args: string[]): boolean {
   return args.some((arg) => arg.startsWith("--pdf-engine"));
 }
 
+function hasPandocCssArg(args: string[]): boolean {
+  return args.includes("-c") || args.includes("--css");
+}
+
 function defaultPandocOutput(inputPath: string, format: string): string {
   const parsed = parse(inputPath);
   return join(parsed.dir, `${parsed.name}.${format}`);
@@ -223,17 +256,59 @@ async function runPandoc(
   outputPath: string | undefined,
   format: string,
   extraArgs: string[],
+  styles: string[],
+  noStyle: boolean,
+  verbose: boolean,
 ): Promise<void> {
-  const args = [inputPath, "--to", format, "-c", pandocCssPath, ...extraArgs];
+  const args = [inputPath, "--to", format];
+  if (!noStyle) {
+    args.push("-c", pandocDocCssPath, "-c", pandocCssPath);
+    for (const style of styles) {
+      args.push("-c", style);
+    }
+  }
+  args.push(...extraArgs);
   if (format === "pdf" && !hasPdfEngineArg(extraArgs)) {
-    args.push("--pdf-engine=wkhtmltopdf");
+    args.push("--pdf-engine=weasyprint");
   }
   if (outputPath && !hasPandocOutputArg(extraArgs)) {
     args.push("-o", outputPath);
   }
 
   await new Promise<void>((resolvePromise, rejectPromise) => {
-    const child = spawn("pandoc", args, { stdio: "inherit" });
+    const child = spawn("pandoc", args, {
+      stdio: verbose ? "inherit" : ["inherit", "inherit", "pipe"],
+    });
+    if (!verbose && child.stderr) {
+      const chunks: Buffer[] = [];
+      child.stderr.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      child.stderr.on("end", () => {
+        const text = Buffer.concat(chunks).toString("utf8");
+        const filtered = text
+          .split(/\r?\n/)
+          .filter((line) => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+              return false;
+            }
+            if (trimmed.startsWith("WARNING: Ignored")) {
+              return false;
+            }
+            if (
+              trimmed.startsWith("WARNING: Invalid or unsupported selector")
+            ) {
+              return false;
+            }
+            return true;
+          })
+          .join("\n");
+        if (filtered) {
+          process.stderr.write(`${filtered}\n`);
+        }
+      });
+    }
     child.on("error", (err) => {
       if (err && typeof err === "object" && "code" in err) {
         const code = (err as { code?: string }).code;
@@ -255,7 +330,7 @@ async function runPandoc(
         if (format === "pdf" && !hasPdfEngineArg(extraArgs)) {
           rejectPromise(
             new Error(
-              "Pandoc failed. For PDF output, install wkhtmltopdf or pass --pdf-engine to Pandoc (e.g. -- --pdf-engine=weasyprint).",
+              "Pandoc failed. For PDF output, install WeasyPrint or pass --pdf-engine to Pandoc (e.g. -- --pdf-engine=weasyprint).",
             ),
           );
           return;
@@ -274,6 +349,15 @@ async function run(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   if (options.text && options.to) {
     throw new Error("--text cannot be combined with --to");
+  }
+  if ((options.styles.length > 0 || options.noStyle) && !options.to) {
+    throw new Error("--style/--no-style require --to");
+  }
+  if (options.noStyle && options.styles.length > 0) {
+    throw new Error("--no-style cannot be combined with --style");
+  }
+  if (options.noStyle && hasPandocCssArg(options.pandocArgs)) {
+    throw new Error("--no-style cannot be combined with Pandoc --css/-c");
   }
   const input = options.input
     ? await readFile(options.input, "utf8")
@@ -297,7 +381,15 @@ async function run(): Promise<void> {
         }
         outputPath = defaultPandocOutput(options.input, format);
       }
-      await runPandoc(tempPath, outputPath, format, options.pandocArgs);
+      await runPandoc(
+        tempPath,
+        outputPath,
+        format,
+        options.pandocArgs,
+        options.styles,
+        options.noStyle,
+        options.verbose,
+      );
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

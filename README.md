@@ -43,6 +43,7 @@ Note: folders with children render as native `<details>/<summary>` elements, so 
 
 You can link the default theme directly as a published asset.
 For local builds, the stylesheet is emitted to `dist/renderer/tree.css`.
+The source styles live in `src/renderer/tree.css` and `src/renderer/tmd-doc.css` if you want to inspect class names or customize.
 
 ```html
 <link rel="stylesheet" href="tree-markdown-parser/tree.css" />
@@ -143,10 +144,23 @@ tmd README.md --to pdf -o README.pdf
 ```
 
 Notes:
+
 - Replace `html` with any Pandoc-supported format (pdf, docx, latex, etc.).
 - `-o/--output` is optional for any format; the default is the same folder/name with the new extension.
-- `tmd --to pdf` defaults to `--pdf-engine=wkhtmltopdf` for HTML-based PDFs.
-- PDF output requires both Pandoc and `wkhtmltopdf` to be installed.
+- `tmd --to pdf` defaults to `--pdf-engine=weasyprint` for HTML-based PDFs.
+- PDF output requires both Pandoc and WeasyPrint to be installed.
+- Install Pandoc:
+  - macOS (brew): `brew install pandoc`
+  - Ubuntu/Debian (apt): `sudo apt install pandoc`
+  - Windows (winget): `winget install Pandoc.Pandoc`
+- Install WeasyPrint:
+  - macOS (brew): `brew install weasyprint`
+  - Ubuntu/Debian (apt): `sudo apt install weasyprint`
+  - Windows (winget): `winget install weasyprint`
+- By default, Pandoc runs with `-c tmd-doc.css -c tree.css` to style general Markdown and trees.
+- Use `--style path/to/custom.css` to append your own stylesheet after the defaults (your styles win).
+- Use `--no-style` for fully unstyled output (no CSS passed to Pandoc).
+- CSS warnings from WeasyPrint are filtered by default; pass `--verbose` to show all warnings.
 - Extra Pandoc flags can be passed after `--`, for example: `tmd README.md --to pdf -- --pdf-engine=weasyprint`.
 
 ## API

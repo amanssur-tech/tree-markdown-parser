@@ -30,6 +30,7 @@
       "default": "./dist/index.js"
     },
     "./tree.css": "./dist/renderer/tree.css",
+    "./tmd-doc.css": "./dist/renderer/tmd-doc.css",
     "./remark": {
       "types": "./dist/remark/remarkTreeMarkdown.d.ts",
       "default": "./dist/remark/remarkTreeMarkdown.js"

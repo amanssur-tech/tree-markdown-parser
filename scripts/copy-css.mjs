@@ -1,8 +1,18 @@
 import { copyFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-const source = resolve("src/renderer/tree.css");
-const destination = resolve("dist/renderer/tree.css");
+const sources = [
+  {
+    source: resolve("src/renderer/tree.css"),
+    destination: resolve("dist/renderer/tree.css"),
+  },
+  {
+    source: resolve("src/renderer/tmd-doc.css"),
+    destination: resolve("dist/renderer/tmd-doc.css"),
+  },
+];
 
-await mkdir(dirname(destination), { recursive: true });
-await copyFile(source, destination);
+for (const { source, destination } of sources) {
+  await mkdir(dirname(destination), { recursive: true });
+  await copyFile(source, destination);
+}

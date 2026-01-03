@@ -42,6 +42,7 @@ export default defineConfig([
       globals: {
         document: "readonly",
         window: "readonly",
+        MutationObserver: "readonly",
       },
     },
   },

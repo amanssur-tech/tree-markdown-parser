@@ -203,9 +203,7 @@
         html = renderHTML(tree);
       } catch {
         const text = renderText(tree);
-        html = `<pre class="tree-text"><code>${escapeHtml(
-          text,
-        )}</code></pre>`;
+        html = `<pre class="tree-text"><code>${escapeHtml(text)}</code></pre>`;
       }
       const wrapper = document.createElement("div");
       wrapper.innerHTML = html;
