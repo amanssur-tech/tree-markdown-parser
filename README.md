@@ -104,7 +104,7 @@ pnpm dev
 Replace fenced ```tree blocks with rendered HTML:
 
 ```bash
-tmd -i README.md -o README.rendered.md
+tmd -i input.md -o output.md
 ```
 
 The preprocessor injects an inline `<style>` tag at the top of the output and adds a `<link rel="stylesheet" href="tree.css" />` fallback (unless one already exists).
@@ -125,13 +125,13 @@ If you need SVG/PNG output of a tree (e.g. for embedding into markdown files tha
 Render trees as plain text instead:
 
 ```bash
-tmd --text < README.md > README.rendered.md
+tmd --text < input.md > output.md
 ```
 
 Render HTML without any CSS injection (recommended for GitHub):
 
 ```bash
-tmd --html-only -i README.md -o README.rendered.md
+tmd --html-only -i input.md -o output.md
 ```
 
 ### Pandoc integration
@@ -139,8 +139,14 @@ tmd --html-only -i README.md -o README.rendered.md
 Run Pandoc through `tmd` with automatic preprocessing and CSS:
 
 ```bash
-tmd README.md --to html
-tmd README.md --to pdf -o README.pdf
+tmd input.md --to html
+tmd input.md --to pdf -o output.pdf
+```
+
+Preview a file (Pandoc HTML) in your browser:
+
+```bash
+tmd preview input.md
 ```
 
 Notes:
@@ -157,11 +163,12 @@ Notes:
   - macOS (brew): `brew install weasyprint`
   - Ubuntu/Debian (apt): `sudo apt install weasyprint`
   - Windows (winget): `winget install weasyprint`
+- `tmd --to html` emits standalone HTML with embedded resources, so CSS is inlined by default.
 - By default, Pandoc runs with `-c tmd-doc.css -c tree.css` to style general Markdown and trees.
 - Use `--style path/to/custom.css` to append your own stylesheet after the defaults (your styles win).
 - Use `--no-style` for fully unstyled output (no CSS passed to Pandoc).
 - CSS warnings from WeasyPrint are filtered by default; pass `--verbose` to show all warnings.
-- Extra Pandoc flags can be passed after `--`, for example: `tmd README.md --to pdf -- --pdf-engine=weasyprint`.
+- Extra Pandoc flags can be passed after `--`, for example: `tmd input.md --to pdf -- --pdf-engine=weasyprint`.
 
 ## API
 

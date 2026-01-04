@@ -1,8 +1,17 @@
 #!/usr/bin/env node
-import { readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
+import { readFile, writeFile, mkdtemp, rm, copyFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { dirname, join, parse, resolve } from "node:path";
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  normalize,
+  parse,
+  resolve,
+} from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseTreeBlock } from "../parser/parseTreeBlock.js";
 import { renderHTML } from "../renderer/renderHTML.js";
@@ -10,6 +19,7 @@ import { renderText } from "../renderer/renderText.js";
 import { defaultTreeTheme } from "../renderer/defaultTheme.js";
 
 interface CliOptions {
+  command: "preprocess" | "preview";
   input?: string;
   output?: string;
   text: boolean;
@@ -21,8 +31,21 @@ interface CliOptions {
   verbose: boolean;
 }
 
+interface PandocRunOptions {
+  inputPath: string;
+  outputPath?: string;
+  format: string;
+  extraArgs: string[];
+  styles: string[];
+  noStyle: boolean;
+  verbose: boolean;
+  cssPaths?: string[];
+  cwd?: string;
+}
+
 function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = {
+    command: "preprocess",
     text: false,
     htmlOnly: false,
     pandocArgs: [],
@@ -31,55 +54,71 @@ function parseArgs(argv: string[]): CliOptions {
     verbose: false,
   };
   const remaining = [...argv];
+  if (remaining[0] === "preview") {
+    options.command = "preview";
+    remaining.shift();
+  }
+
+  const takeValue = (flag: string): string => {
+    const value = remaining.shift();
+    if (!value) {
+      throw new Error(`${flag} requires a value`);
+    }
+    return value;
+  };
+
+  const handleKnownFlag = (arg: string): boolean => {
+    if (arg === "--") {
+      options.pandocArgs.push(...remaining);
+      remaining.length = 0;
+      return true;
+    }
+    if (arg === "--text") {
+      options.text = true;
+      return true;
+    }
+    if (arg === "--html-only") {
+      options.htmlOnly = true;
+      return true;
+    }
+    if (arg === "--style") {
+      options.styles.push(takeValue("--style"));
+      return true;
+    }
+    if (arg === "--no-style") {
+      options.noStyle = true;
+      return true;
+    }
+    if (arg === "--verbose") {
+      options.verbose = true;
+      return true;
+    }
+    if (arg === "--to" || arg === "-t") {
+      options.to = takeValue(arg);
+      return true;
+    }
+    if (arg === "--input" || arg === "-i") {
+      options.input = takeValue(arg);
+      return true;
+    }
+    if (arg === "--output" || arg === "-o") {
+      options.output = takeValue(arg);
+      return true;
+    }
+    if (arg === "--help" || arg === "-h") {
+      printHelp();
+      process.exit(0);
+    }
+    return false;
+  };
 
   while (remaining.length > 0) {
     const arg = remaining.shift();
     if (!arg) {
       continue;
     }
-    if (arg === "--") {
-      options.pandocArgs.push(...remaining);
-      break;
-    }
-    if (arg === "--text") {
-      options.text = true;
+    if (handleKnownFlag(arg)) {
       continue;
-    }
-    if (arg === "--html-only") {
-      options.htmlOnly = true;
-      continue;
-    }
-    if (arg === "--style") {
-      const value = remaining.shift();
-      if (!value) {
-        throw new Error("--style requires a file path");
-      }
-      options.styles.push(value);
-      continue;
-    }
-    if (arg === "--no-style") {
-      options.noStyle = true;
-      continue;
-    }
-    if (arg === "--verbose") {
-      options.verbose = true;
-      continue;
-    }
-    if (arg === "--to" || arg === "-t") {
-      options.to = remaining.shift();
-      continue;
-    }
-    if (arg === "--input" || arg === "-i") {
-      options.input = remaining.shift();
-      continue;
-    }
-    if (arg === "--output" || arg === "-o") {
-      options.output = remaining.shift();
-      continue;
-    }
-    if (arg === "--help" || arg === "-h") {
-      printHelp();
-      process.exit(0);
     }
     if (arg.startsWith("-")) {
       options.pandocArgs.push(arg);
@@ -104,6 +143,7 @@ function printHelp(): void {
 
 Usage:
   tmd --input README.md --output README.out.md
+  tmd preview README.md
   tmd README.md --to html
   tmd README.md --to pdf -o README.pdf
   tmd --text < input.md > output.md
@@ -246,40 +286,54 @@ function hasPandocCssArg(args: string[]): boolean {
   return args.includes("-c") || args.includes("--css");
 }
 
+function hasStandaloneArg(args: string[]): boolean {
+  return args.includes("-s") || args.includes("--standalone");
+}
+
+function hasEmbedResourcesArg(args: string[]): boolean {
+  return (
+    args.includes("--embed-resources") ||
+    args.includes("--self-contained") ||
+    args.some((arg) => arg.startsWith("--embed-resources="))
+  );
+}
+
 function defaultPandocOutput(inputPath: string, format: string): string {
   const parsed = parse(inputPath);
   return join(parsed.dir, `${parsed.name}.${format}`);
 }
 
-async function runPandoc(
-  inputPath: string,
-  outputPath: string | undefined,
-  format: string,
-  extraArgs: string[],
-  styles: string[],
-  noStyle: boolean,
-  verbose: boolean,
-): Promise<void> {
-  const args = [inputPath, "--to", format];
-  if (!noStyle) {
-    args.push("-c", pandocDocCssPath, "-c", pandocCssPath);
-    for (const style of styles) {
+async function runPandoc(options: PandocRunOptions): Promise<void> {
+  const args = [options.inputPath, "--to", options.format];
+  if (!options.noStyle) {
+    const baseCss = options.cssPaths ?? [pandocDocCssPath, pandocCssPath];
+    for (const cssPath of baseCss) {
+      args.push("-c", cssPath);
+    }
+    for (const style of options.styles) {
       args.push("-c", style);
     }
   }
-  args.push(...extraArgs);
-  if (format === "pdf" && !hasPdfEngineArg(extraArgs)) {
+  args.push(...options.extraArgs);
+  if (options.format === "pdf" && !hasPdfEngineArg(options.extraArgs)) {
     args.push("--pdf-engine=weasyprint");
   }
-  if (outputPath && !hasPandocOutputArg(extraArgs)) {
-    args.push("-o", outputPath);
+  if (options.format === "html" && !hasStandaloneArg(options.extraArgs)) {
+    args.push("--standalone");
+  }
+  if (options.format === "html" && !hasEmbedResourcesArg(options.extraArgs)) {
+    args.push("--embed-resources");
+  }
+  if (options.outputPath && !hasPandocOutputArg(options.extraArgs)) {
+    args.push("-o", options.outputPath);
   }
 
   await new Promise<void>((resolvePromise, rejectPromise) => {
     const child = spawn("pandoc", args, {
-      stdio: verbose ? "inherit" : ["inherit", "inherit", "pipe"],
+      stdio: options.verbose ? "inherit" : ["inherit", "inherit", "pipe"],
+      cwd: options.cwd,
     });
-    if (!verbose && child.stderr) {
+    if (!options.verbose && child.stderr) {
       const chunks: Buffer[] = [];
       child.stderr.on("data", (chunk: Buffer) => {
         chunks.push(chunk);
@@ -327,7 +381,7 @@ async function runPandoc(
       if (code === 0) {
         resolvePromise();
       } else {
-        if (format === "pdf" && !hasPdfEngineArg(extraArgs)) {
+        if (options.format === "pdf" && !hasPdfEngineArg(options.extraArgs)) {
           rejectPromise(
             new Error(
               "Pandoc failed. For PDF output, install WeasyPrint or pass --pdf-engine to Pandoc (e.g. -- --pdf-engine=weasyprint).",
@@ -345,13 +399,55 @@ async function runPandoc(
   });
 }
 
-async function run(): Promise<void> {
-  const options = parseArgs(process.argv.slice(2));
+function openUrl(url: string): void {
+  const platform = process.platform;
+  if (platform === "darwin") {
+    spawn("open", [url], { stdio: "ignore", detached: true }).unref();
+    return;
+  }
+  if (platform === "win32") {
+    spawn("cmd", ["/c", "start", "", url], {
+      stdio: "ignore",
+      detached: true,
+    }).unref();
+    return;
+  }
+  spawn("xdg-open", [url], { stdio: "ignore", detached: true }).unref();
+}
+
+function resolvePreviewPath(root: string, urlPath: string): string | null {
+  const safePath = normalize(decodeURIComponent(urlPath)).replace(/^\/+/, "");
+  const fullPath = join(root, safePath);
+  if (!fullPath.startsWith(root)) {
+    return null;
+  }
+  return fullPath;
+}
+
+function contentTypeFor(filePath: string): string {
+  const ext = extname(filePath).toLowerCase();
+  if (ext === ".html") return "text/html; charset=utf-8";
+  if (ext === ".css") return "text/css; charset=utf-8";
+  return "application/octet-stream";
+}
+
+function validateOptions(
+  options: CliOptions,
+  isPandocMode: boolean,
+  isPreviewMode: boolean,
+): void {
   if (options.text && options.to) {
     throw new Error("--text cannot be combined with --to");
   }
-  if ((options.styles.length > 0 || options.noStyle) && !options.to) {
-    throw new Error("--style/--no-style require --to");
+  if (options.text && isPreviewMode) {
+    throw new Error("--text cannot be combined with preview");
+  }
+  if (
+    (options.styles.length > 0 || options.noStyle) &&
+    !isPandocMode &&
+    !isPreviewMode
+  ) {
+    throw new Error("--style/--no-style require --to or preview");
   }
   if (options.noStyle && options.styles.length > 0) {
     throw new Error("--no-style cannot be combined with --style");
@@ -359,45 +455,157 @@ async function run(): Promise<void> {
   if (options.noStyle && hasPandocCssArg(options.pandocArgs)) {
     throw new Error("--no-style cannot be combined with Pandoc --css/-c");
   }
-  const input = options.input
-    ? await readFile(options.input, "utf8")
-    : await readStdin();
-  const isPandocMode = Boolean(options.to);
-  const output = replaceTreeBlocks(input, {
-    ...options,
-    htmlOnly: isPandocMode ? true : options.htmlOnly,
+  if (isPreviewMode && !options.input) {
+    throw new Error("preview requires an input file path");
+  }
+}
+
+async function readInput(options: CliOptions): Promise<string> {
+  if (options.input) {
+    return readFile(options.input, "utf8");
+  }
+  return readStdin();
+}
+
+async function runPreview(options: CliOptions, output: string): Promise<void> {
+  const tempDir = await mkdtemp(join(tmpdir(), "tmd-preview-"));
+  const tempPath = join(tempDir, "tmd-preprocessed.md");
+  const htmlPath = join(tempDir, "preview.html");
+  const cssPaths: string[] = [];
+  let cleaned = false;
+  const cleanup = async (): Promise<void> => {
+    if (cleaned) return;
+    cleaned = true;
+    await rm(tempDir, { recursive: true, force: true });
+  };
+  try {
+    await writeFile(tempPath, output, "utf8");
+    if (!options.noStyle) {
+      const docCssName = basename(pandocDocCssPath);
+      const treeCssName = basename(pandocCssPath);
+      await copyFile(pandocDocCssPath, join(tempDir, docCssName));
+      await copyFile(pandocCssPath, join(tempDir, treeCssName));
+      cssPaths.push(docCssName, treeCssName);
+      for (const style of options.styles) {
+        const name = basename(style);
+        await copyFile(style, join(tempDir, name));
+        cssPaths.push(name);
+      }
+    }
+    await runPandoc({
+      inputPath: tempPath,
+      outputPath: htmlPath,
+      format: "html",
+      extraArgs: options.pandocArgs,
+      styles: [],
+      noStyle: options.noStyle,
+      verbose: options.verbose,
+      cssPaths,
+      cwd: tempDir,
+    });
+    await startPreviewServer(tempDir, basename(htmlPath));
+    const onSignal = async (): Promise<void> => {
+      await cleanup();
+      process.exit(0);
+    };
+    process.on("SIGINT", onSignal);
+    process.on("SIGTERM", onSignal);
+    process.on("beforeExit", cleanup);
+  } catch (err) {
+    await cleanup();
+    throw err;
+  }
+}
+
+async function runPandocMode(
+  options: CliOptions,
+  output: string,
+): Promise<void> {
+  const format = options.to ?? "html";
+  const tempDir = await mkdtemp(join(tmpdir(), "tmd-"));
+  const tempPath = join(tempDir, "tmd-preprocessed.md");
+  try {
+    await writeFile(tempPath, output, "utf8");
+    let outputPath = options.output;
+    if (!outputPath) {
+      if (!options.input) {
+        throw new Error("Provide --output when using stdin with --to");
+      }
+      outputPath = defaultPandocOutput(options.input, format);
+    }
+    await runPandoc({
+      inputPath: tempPath,
+      outputPath,
+      format,
+      extraArgs: options.pandocArgs,
+      styles: options.styles,
+      noStyle: options.noStyle,
+      verbose: options.verbose,
+    });
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function startPreviewServer(root: string, entry: string): Promise<void> {
+  const server = createServer(async (req, res) => {
+    const requestPath = req.url === "/" ? entry : (req.url ?? "/");
+    const filePath = resolvePreviewPath(root, requestPath);
+    if (!filePath) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    try {
+      const data = await readFile(filePath);
+      res.writeHead(200, { "Content-Type": contentTypeFor(filePath) });
+      res.end(data);
+    } catch {
+      res.writeHead(404);
+      res.end("Not found");
+    }
   });
 
-  if (isPandocMode) {
-    const format = options.to ?? "html";
-    const tempDir = await mkdtemp(join(tmpdir(), "tmd-"));
-    const tempPath = join(tempDir, "tmd-preprocessed.md");
-    try {
-      await writeFile(tempPath, output, "utf8");
-      let outputPath = options.output;
-      if (!outputPath) {
-        if (!options.input) {
-          throw new Error("Provide --output when using stdin with --to");
-        }
-        outputPath = defaultPandocOutput(options.input, format);
-      }
-      await runPandoc(
-        tempPath,
-        outputPath,
-        format,
-        options.pandocArgs,
-        options.styles,
-        options.noStyle,
-        options.verbose,
-      );
-    } finally {
-      await rm(tempDir, { recursive: true, force: true });
-    }
-  } else if (options.output) {
-    await writeFile(options.output, output, "utf8");
-  } else {
-    process.stdout.write(output);
+  await new Promise<void>((resolvePromise) => {
+    server.listen(0, "127.0.0.1", () => {
+      resolvePromise();
+    });
+  });
+
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("Failed to start preview server");
   }
+  const url = `http://127.0.0.1:${address.port}/${entry}`;
+  process.stdout.write(`Preview: ${url}\n`);
+  openUrl(url);
+}
+
+async function run(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2));
+  const isPandocMode = Boolean(options.to);
+  const isPreviewMode = options.command === "preview";
+  validateOptions(options, isPandocMode, isPreviewMode);
+
+  const input = await readInput(options);
+  const output = replaceTreeBlocks(input, {
+    ...options,
+    htmlOnly: isPandocMode || isPreviewMode ? true : options.htmlOnly,
+  });
+
+  if (isPreviewMode) {
+    await runPreview(options, output);
+    return;
+  }
+  if (isPandocMode) {
+    await runPandocMode(options, output);
+    return;
+  }
+  if (options.output) {
+    await writeFile(options.output, output, "utf8");
+    return;
+  }
+  process.stdout.write(output);
 }
 
 try {

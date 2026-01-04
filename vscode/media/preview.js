@@ -215,9 +215,9 @@
     let timerId = null;
     const scheduleReplace = () => {
       if (timerId !== null) {
-        window.clearTimeout(timerId);
+        globalThis.clearTimeout(timerId);
       }
-      timerId = window.setTimeout(() => {
+      timerId = globalThis.setTimeout(() => {
         replaceBlocks();
         timerId = null;
       }, 60);
