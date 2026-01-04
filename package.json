@@ -32,8 +32,8 @@
     "./tree.css": "./dist/renderer/tree.css",
     "./tmd-doc.css": "./dist/renderer/tmd-doc.css",
     "./remark": {
-      "types": "./dist/remark/remarkTreeMarkdown.d.ts",
-      "default": "./dist/remark/remarkTreeMarkdown.js"
+      "types": "./dist/remark/treeMdTransform.d.ts",
+      "default": "./dist/remark/treeMdTransform.js"
     },
     "./preprocess": {
       "types": "./dist/cli/preprocess.d.ts",

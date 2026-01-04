@@ -6,12 +6,13 @@ export const defaultTreeTheme = String.raw`
   --tree-accent: #3a6ea5;
   --tree-bg: #f7f5f1;
   --tree-border: #e4ded6;
+  --tree-bg-top: #fcfbf9;
   --tree-indent: 1.1rem;
   --tree-radius: 10px;
 
   font-family: var(--tree-font);
   color: var(--tree-text);
-  background: linear-gradient(180deg, #fcfbf9 0%, var(--tree-bg) 100%);
+  background: linear-gradient(180deg, var(--tree-bg-top) 0%, var(--tree-bg) 100%);
   border: 1px solid var(--tree-border);
   border-radius: var(--tree-radius);
   padding: 1rem 1.25rem;
@@ -94,6 +95,26 @@ export const defaultTreeTheme = String.raw`
 .tree[data-compact="true"] {
   --tree-indent: 0.85rem;
   padding: 0.75rem 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tree {
+    --tree-text: #e9e6df;
+    --tree-muted: #9a9387;
+    --tree-accent: #88b2ff;
+    --tree-bg: #1b1a17;
+    --tree-border: #2f2b25;
+    --tree-bg-top: #1f1e1b;
+  }
+}
+
+.vscode-dark .tree {
+  --tree-text: #e9e6df;
+  --tree-muted: #9a9387;
+  --tree-accent: #88b2ff;
+  --tree-bg: #1b1a17;
+  --tree-border: #2f2b25;
+  --tree-bg-top: #1f1e1b;
 }
 
 @media print {

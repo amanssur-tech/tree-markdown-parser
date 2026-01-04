@@ -73,3 +73,33 @@ blockquote {
   margin: 1em 0;
   padding-left: 1em;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #e4ded6;
+    background: #161512;
+  }
+
+  a {
+    color: #8ab4ff;
+  }
+
+  pre {
+    border-color: #e6ded62e;
+    background: #1e1c18;
+  }
+
+  table {
+    border-color: #2f2b25;
+  }
+
+  th,
+  td {
+    border-color: #2f2b25;
+  }
+
+  blockquote {
+    border-left-color: #2f2b25;
+    color: #bdb6aa;
+  }
+}

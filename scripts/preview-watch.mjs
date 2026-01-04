@@ -6,7 +6,7 @@ import { remark } from "remark";
 import remarkRehype from "remark-rehype";
 import rehypeRaw from "rehype-raw";
 import rehypeStringify from "rehype-stringify";
-import remarkTreeMarkdown from "../dist/remark/remarkTreeMarkdown.js";
+import TreeMarkdown from "../dist/remark/treeMdTransform.js";
 import { defaultTreeTheme } from "../dist/index.js";
 
 const argv = process.argv.slice(2);
@@ -28,7 +28,7 @@ const render = async () => {
   const markdown = await readFile(resolve(inputPath), "utf8");
 
   const file = await remark()
-    .use(remarkTreeMarkdown)
+    .use(TreeMarkdown)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeStringify)

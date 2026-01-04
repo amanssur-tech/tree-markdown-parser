@@ -9,14 +9,14 @@ type MdastNode = {
   children?: MdastNode[];
 };
 
-export interface RemarkTreeMarkdownOptions {
+export interface TreeMarkdownOptions {
   parse?: ParseOptions;
   htmlRootClass?: string;
 }
 
 function transformNode(
   node: MdastNode,
-  options?: RemarkTreeMarkdownOptions,
+  options?: TreeMarkdownOptions,
 ): MdastNode {
   if (
     node.type === "code" &&
@@ -35,8 +35,8 @@ function transformNode(
   return node;
 }
 
-export function remarkTreeMarkdown(options?: RemarkTreeMarkdownOptions) {
+export function TreeMarkdown(options?: TreeMarkdownOptions) {
   return (tree: MdastNode) => transformNode(tree, options);
 }
 
-export default remarkTreeMarkdown;
+export default TreeMarkdown;

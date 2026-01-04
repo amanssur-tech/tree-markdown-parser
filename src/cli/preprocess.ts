@@ -13,6 +13,7 @@ import {
   resolve,
 } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { parseTreeBlock } from "../parser/parseTreeBlock.js";
 import { renderHTML } from "../renderer/renderHTML.js";
 import { renderText } from "../renderer/renderText.js";
@@ -58,13 +59,35 @@ function parseArgs(argv: string[]): CliOptions {
     options.command = "preview";
     remaining.shift();
   }
+  const positional: string[] = [];
+  parseArgsTokens(options, remaining, positional);
+  applyPositionalArgs(options, positional);
+  return options;
+}
 
+function parseArgsTokens(
+  options: CliOptions,
+  remaining: string[],
+  positional: string[],
+): void {
   const takeValue = (flag: string): string => {
     const value = remaining.shift();
     if (!value) {
       throw new Error(`${flag} requires a value`);
     }
     return value;
+  };
+
+  const handleMetaFlag = (arg: string): boolean => {
+    if (arg === "--help" || arg === "-h") {
+      printHelp();
+      process.exit(0);
+    }
+    if (arg === "--version" || arg === "-v") {
+      printVersion();
+      process.exit(0);
+    }
+    return false;
   };
 
   const handleKnownFlag = (arg: string): boolean => {
@@ -105,11 +128,15 @@ function parseArgs(argv: string[]): CliOptions {
       options.output = takeValue(arg);
       return true;
     }
-    if (arg === "--help" || arg === "-h") {
-      printHelp();
-      process.exit(0);
-    }
     return false;
+  };
+
+  const pushPandocArg = (arg: string): void => {
+    options.pandocArgs.push(arg);
+    const peek = remaining[0];
+    if (peek && !peek.startsWith("-")) {
+      options.pandocArgs.push(remaining.shift() ?? "");
+    }
   };
 
   while (remaining.length > 0) {
@@ -117,31 +144,38 @@ function parseArgs(argv: string[]): CliOptions {
     if (!arg) {
       continue;
     }
-    if (handleKnownFlag(arg)) {
+    if (handleMetaFlag(arg) || handleKnownFlag(arg)) {
       continue;
     }
     if (arg.startsWith("-")) {
-      options.pandocArgs.push(arg);
-      const peek = remaining[0];
-      if (peek && !peek.startsWith("-")) {
-        options.pandocArgs.push(remaining.shift() ?? "");
-      }
+      pushPandocArg(arg);
       continue;
     }
-    if (!options.input) {
-      options.input = arg;
-      continue;
-    }
-    options.pandocArgs.push(arg);
+    positional.push(arg);
   }
+}
 
-  return options;
+function applyPositionalArgs(options: CliOptions, positional: string[]): void {
+  if (positional.length > 0 && !options.input) {
+    options.input = positional[0];
+  }
+  if (
+    positional.length > 1 &&
+    !options.output &&
+    options.command !== "preview"
+  ) {
+    options.output = positional[1];
+  }
+  if (positional.length > 1 && options.command === "preview") {
+    options.pandocArgs.push(...positional.slice(1));
+  }
 }
 
 function printHelp(): void {
   process.stdout.write(`tmd (tree-markdown-parser)
 
 Usage:
+  tmd README.md output.md
   tmd --input README.md --output README.out.md
   tmd preview README.md
   tmd README.md --to html
@@ -157,8 +191,16 @@ Options:
   --style       Append a custom CSS file after defaults in Pandoc mode
   --no-style    Disable all CSS in Pandoc mode
   --verbose     Show all Pandoc/WeasyPrint warnings
+  -v, --version Show the current version
   -h, --help    Show this help message
 `);
+}
+
+function printVersion(): void {
+  const packageUrl = new URL("../../package.json", import.meta.url);
+  const packageJson = readFileSync(packageUrl, "utf8");
+  const parsed = JSON.parse(packageJson) as { version?: string };
+  process.stdout.write(`${parsed.version ?? "unknown"}\n`);
 }
 
 async function readStdin(): Promise<string> {
@@ -353,6 +395,12 @@ async function runPandoc(options: PandocRunOptions): Promise<void> {
             if (
               trimmed.startsWith("WARNING: Invalid or unsupported selector")
             ) {
+              return false;
+            }
+            if (trimmed.startsWith("WARNING: Expected a media type, got")) {
+              return false;
+            }
+            if (trimmed.startsWith("WARNING: Invalid media type")) {
               return false;
             }
             return true;
@@ -601,8 +649,16 @@ async function run(): Promise<void> {
     await runPandocMode(options, output);
     return;
   }
-  if (options.output) {
-    await writeFile(options.output, output, "utf8");
+  let outputPath = options.output;
+  if (!outputPath && options.input) {
+    const parsed = parse(options.input);
+    outputPath = join(
+      parsed.dir || process.cwd(),
+      `${parsed.name}_rendered${parsed.ext || ".md"}`,
+    );
+  }
+  if (outputPath) {
+    await writeFile(outputPath, output, "utf8");
     return;
   }
   process.stdout.write(output);
