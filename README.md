@@ -6,6 +6,14 @@ Parse fenced `tree` blocks into an AST and render rich HTML (plus optional Merma
 
 ```bash
 pnpm i tree-markdown-parser
+npm i tree-markdown-parser
+yarn add tree-markdown-parser
+```
+
+Run the CLI without installing:
+
+```bash
+npx tree-markdown-parser --help
 ```
 
 ## Usage
@@ -38,6 +46,21 @@ ${html}
 ```
 
 Note: folders with children render as native `<details>/<summary>` elements, so they are collapsible by default and should work in most Markdown/PDF renderers without JavaScript.
+
+## Mermaid Output
+
+```ts
+import { parseTreeBlock, renderMermaid } from "tree-markdown-parser";
+
+const tree = parseTreeBlock("src/\n  app/\n    page.tsx");
+const mermaid = renderMermaid(tree);
+```
+
+Quick demo (prints Mermaid and opens Mermaid Live):
+
+```bash
+pnpm mermaid:demo -- --input demo/demo.md
+```
 
 ## Static CSS
 
@@ -87,17 +110,20 @@ For VS Code preview integration, use the extension in `vscode/`. It injects `tre
 
 ## Local preview
 
-To render a Markdown file to HTML locally (browser preview), run:
-
-```bash
-pnpm preview
-```
-
 To build, open, and rebuild the HTML on every Markdown change (browser preview), run:
 
 ```bash
 pnpm dev
 ```
+
+Pass an input file explicitly:
+
+```bash
+pnpm dev -- demo/your-file.md
+```
+
+Note: `pnpm dev` is a development preview focused on the tree block renderer. The rest of the Markdown renders as plain HTML. For a full rich preview of your entire Markdown file, use `tmd preview input.md` or the `vscode-tree-markdown` extension.
+If no input is provided, it defaults to `demo/demo.md`.
 
 ## CLI Preprocessor
 

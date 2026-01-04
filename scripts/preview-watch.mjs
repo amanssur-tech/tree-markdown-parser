@@ -13,10 +13,11 @@ const argv = process.argv.slice(2);
 const args = new Set(argv);
 const inputIndex = argv.indexOf("--input");
 const outputIndex = argv.indexOf("--output");
+const positionalInput = argv.find((arg) => !arg.startsWith("-"));
 const inputPath =
   inputIndex >= 0 && argv[inputIndex + 1]
     ? argv[inputIndex + 1]
-    : "demo/demo.md";
+    : positionalInput || "demo/demo.md";
 const outputPath =
   outputIndex >= 0 && argv[outputIndex + 1]
     ? argv[outputIndex + 1]

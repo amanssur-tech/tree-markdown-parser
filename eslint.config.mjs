@@ -33,6 +33,7 @@ export default defineConfig([
       globals: {
         process: "readonly",
         console: "readonly",
+        Buffer: "readonly",
       },
     },
   },
