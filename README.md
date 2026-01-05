@@ -9,6 +9,8 @@ tree-markdown-parser parses fenced `tree` blocks into a structured AST and rende
 
 The tool integrates via a CLI, Markdown plugins, and a VS Code extension. Mermaid and plain-text outputs are also available.
 
+<img width="1440" height="900" alt="before-after-dark" src="https://github.com/user-attachments/assets/1a119a74-0c83-43b5-9e3b-4d93a7cac4f6" />
+
 ## Install
 
 ```bash
@@ -80,6 +82,8 @@ Export a markdown file with Pandoc through `tmd` to other formats like html or p
 2. `tree.css` for tree rendering
 
 This provides a clean, readable layout for both the document content and the rendered trees. In order to use Pandoc, you need to install Pandoc on your system.
+
+<img width="1440" height="900" alt="md-pdf" src="https://github.com/user-attachments/assets/23f286ae-1cee-452b-98f1-6ba149bc01f9" />
 
 #### Pandoc installation
 
