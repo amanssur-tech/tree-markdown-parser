@@ -1,3 +1,15 @@
+// VS Code Markdown preview injection script.
+//
+// This script runs inside the Markdown preview WebView and is responsible for
+// transforming fenced ```tree code blocks into interactive HTML trees.
+//
+// Design constraints:
+// - No imports or module system (runs as a raw browser script)
+// - No dependency on the core tmd package
+// - Must tolerate partial DOM updates and re-renders by VS Code
+//
+// The script observes DOM mutations and re-processes tree blocks incrementally
+// to stay in sync with live Markdown edits.
 (() => {
   const parseTreeBlock = (input) => buildTree(tokenizeLines(input));
 
@@ -184,6 +196,9 @@
     return lines.join("\n");
   };
 
+  // Locate fenced tree code blocks rendered by VS Code and replace them
+  // with interactive HTML trees. Already-processed blocks are skipped
+  // to avoid duplicate rendering.
   const replaceBlocks = () => {
     const blocks = document.querySelectorAll(
       "code.language-tree, code.lang-tree",
@@ -211,6 +226,8 @@
     });
   };
 
+  // Watch the preview DOM for changes triggered by VS Code re-rendering.
+  // Updates are debounced to avoid excessive re-processing while typing.
   const setupObserver = () => {
     let timerId = null;
     const scheduleReplace = () => {
@@ -238,6 +255,8 @@
     });
   };
 
+  // Initial render + continuous updates.
+  // VS Code may inject content after DOMContentLoaded, so both paths are needed.
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", replaceBlocks, {
       once: true,

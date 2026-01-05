@@ -28,7 +28,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["scripts/**/*.mjs"],
+    files: ["tooling/**/*.mjs"],
     languageOptions: {
       globals: {
         process: "readonly",

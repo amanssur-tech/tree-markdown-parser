@@ -48,9 +48,9 @@
     "tmd": "./dist/cli/preprocess.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && node scripts/copy-css.mjs",
-    "dev": "pnpm build && node scripts/preview-watch.mjs --open",
-    "mermaid": "pnpm build && node scripts/mermaid-demo.mjs --open",
+    "build": "tsc -p tsconfig.json && node tooling/copy-css.mjs",
+    "dev": "pnpm build && node tooling/preview-watch.mjs --open",
+    "mermaid": "pnpm build && node tooling/mermaid-demo.mjs --open",
     "tmd": "pnpm build && node dist/cli/preprocess.js",
     "test": "vitest",
     "lint": "eslint",

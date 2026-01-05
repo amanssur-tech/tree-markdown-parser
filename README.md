@@ -25,7 +25,22 @@ npx tree-markdown-parser --help
 
 The CLI is exposed as `tmd` after installation. Use `-h/--help` to list all flags and `-v/--version` to print the current version.
 
-## CLI Rendering Pipeline
+## Table of Contents
+
+- **[CLI Usage](#cli-usage)**
+- **[Pandoc Integration](#pandoc-integration)**
+- **[VS Code Extension](#vs-code-extension)**
+- **[Codebase Map](#codebase-map)**
+- **[Plugins](#plugins)**
+- **[Renderers](#renderers)**
+- **[Local Dev Preview](#local-dev-preview)**
+- **[Library Usage](#library-usage)**
+- **[API](#api)**
+- **[Options](#options)**
+- **[License](#license)**
+- **[Contributing](#contributing)**
+
+## CLI Usage
 
 ### Tree Rendering
 
@@ -119,7 +134,44 @@ tmd input.md --to pdf -- --pdf-engine=weasyprint
 
 ## VS Code extension
 
-Use the `vscode-tree-markdown` extension for automatic fenced `tree` rendering in VS Code’s Markdown preview. It injects `tree.css` and swaps fenced `tree` blocks in the preview using a preview script.
+For the best authoring experience, use the **vscode-tree-markdown** extension to render fenced `tree` blocks automatically in VS Code’s Markdown preview.
+
+The extension works entirely at preview time:
+
+- No files are modified
+- No preprocessing is required
+- No CLI commands are needed
+
+It injects the tree stylesheet and replaces fenced `tree` blocks in the preview with the same HTML renderer used by the core library.
+
+### Where to get
+
+VS Code Marketplace:  
+<https://marketplace.visualstudio.com/items?itemName=><publisher>.vscode-tree-markdown
+
+### Source
+
+Extension source (in this repo):  
+[`/vscode`](./vscode)
+
+### Notes
+
+The extension affects **only the Markdown preview**, not the editor text. For exports (HTML, PDF, etc.), use the `tmd` CLI instead.
+
+## Codebase Map
+
+- `src/` Core library and CLI logic
+  - `src/tree/` Tree parsing and normalization (AST construction)
+  - `src/renderer/` Output renderers (HTML, Mermaid, text, CSS themes)
+  - `src/cli/` CLI preprocessing and Pandoc integration
+  - `src/remark/`, `src/markdown-it/` Markdown plugin integrations
+
+- `tooling/` Command-layer helpers invoked by npm scripts  
+  (build steps, preview server, demos, CSS emission)
+
+- `tests/` Parsing and structural behavior tests
+
+- `vscode/` VS Code extension for live Markdown preview rendering
 
 ## Plugins
 
@@ -273,3 +325,10 @@ Field notes:
 ## License
 
 MIT © Amanullah Manssur. See `LICENSE` for details.
+
+## Contributing
+
+Contributions are welcome.
+
+If you want to understand the project’s architecture, design principles,
+or contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).

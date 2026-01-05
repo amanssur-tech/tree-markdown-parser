@@ -1,25 +1,76 @@
-# Tree Markdown VS Code Extension
+# Tree Markdown – VS Code Extension
 
-This extension enables fenced `tree` blocks in VS Code’s Markdown preview.
+Render ASCII directory trees correctly in VS Code’s Markdown preview.
 
-## Development
+This extension detects fenced ```tree blocks and replaces them in the preview with structured, collapsible HTML trees. Your Markdown files are never modified.
 
-1. Install dependencies
+## Why this extension exists
 
-   ```bash
-    pnpm install
-   ```
+By default, VS Code renders ASCII directory trees as plain monospaced text.  
+Nesting, indentation guides, and branch structure quickly become hard to read and easy to misinterpret.
 
-2. Compile
+This extension turns:
 
-   ```bash
-   pnpm compile
-   ```
+```tree
+src/
+├─ app/
+│  ├─ page.tsx
+│  └─ layout.tsx
+```
 
-3. Press F5 in VS Code to launch the Extension Development Host.
+into a clean, structured tree in the Markdown preview, with native folder collapsing and consistent layout.
 
-4. In the Extension Development Host, open a Markdown file that contains fenced ```tree blocks and open the Markdown preview.
+## What this extension does
+
+- Detects fenced ```tree blocks in Markdown
+- Renders them as structured HTML trees in the preview
+- Uses native `<details>/<summary>` elements for collapsing folders
+- Injects its own stylesheet into the preview
+- Updates live as you edit your Markdown
+
+## What this extension does _not_ do
+
+- It does **not** modify your Markdown files
+- It does **not** affect exports (PDF, HTML, etc.)
+- It does **not** rely on markdown-it plugins
+- It does **not** execute JavaScript inside your documents
+
+The behavior is strictly limited to VS Code’s Markdown preview.
+
+## Usage
+
+1. Install the extension
+2. Open a Markdown file
+3. Add a fenced `tree` block:
+
+````plaintext
+```tree
+src/
+├─ app/
+│  ├─ page.tsx
+│  └─ layout.tsx
+``` (end of fenced block)
+````
+
+1. Open the Markdown preview  
+   (`Ctrl+Shift+V` on Windows/Linux, `⌘⇧V` on macOS)
+
+That’s it. The tree renders automatically in the preview.
 
 ## Notes
 
-The extension injects `media/tree.css` and uses `media/preview.js` to replace fenced `tree` blocks in the preview. It does not rely on VS Code loading markdown-it plugins.
+- Styling is applied only inside the Markdown preview
+- Trees use native HTML semantics and require no JavaScript
+- Preview updates automatically as the document changes
+
+## Related project
+
+This extension is part of the **tree-markdown-parser** project, which also provides:
+
+- A CLI for preprocessing Markdown files
+- Pandoc integration for HTML and PDF exports
+- remark and markdown-it plugins for other pipelines
+
+Those features are intentionally out of scope for this VS Code extension.
+
+Repository: <https://github.com/your-org/tree-markdown-parser>

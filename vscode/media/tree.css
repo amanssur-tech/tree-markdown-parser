@@ -1,3 +1,4 @@
+/* VS Code preview styles that should keep in sync with core tree theme defaults. */
 .tree {
   --tree-font: "IBM Plex Mono", "Courier New", monospace;
   --tree-text: #1b1b1b;
