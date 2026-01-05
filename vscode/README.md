@@ -73,4 +73,4 @@ This extension is part of the **tree-markdown-parser** project, which also provi
 
 Those features are intentionally out of scope for this VS Code extension.
 
-Repository: <https://github.com/your-org/tree-markdown-parser>
+Repository: <https://github.com/amanssur-tech/tree-markdown-parser/>

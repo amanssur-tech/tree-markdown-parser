@@ -324,7 +324,7 @@ Field notes:
 
 ## License
 
-MIT © Amanullah Manssur. See `LICENSE` for details.
+MIT © Amanullah Manssur. See [LICENSE](./LICENSE) for details.
 
 ## Contributing
 
