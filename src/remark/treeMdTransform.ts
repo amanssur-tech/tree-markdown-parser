@@ -1,6 +1,7 @@
-import { parseTreeBlock } from "../parser/parseTreeBlock.js";
+// Transform plugin for MDAST tools like `remark` that swaps fenced tree blocks with rendered HTML.
+import { parseTreeBlock } from "../tree/parseTreeBlock.js";
 import { renderHTML } from "../renderer/renderHTML.js";
-import type { ParseOptions } from "../types/tree.js";
+import type { ParseOptions } from "../tree/types.js";
 
 type MdastNode = {
   type: string;
@@ -13,6 +14,12 @@ export interface TreeMarkdownOptions {
   parse?: ParseOptions;
   htmlRootClass?: string;
 }
+
+export function TreeMarkdown(options?: TreeMarkdownOptions) {
+  return (tree: MdastNode) => transformNode(tree, options);
+}
+
+export default TreeMarkdown;
 
 function transformNode(
   node: MdastNode,
@@ -34,9 +41,3 @@ function transformNode(
 
   return node;
 }
-
-export function TreeMarkdown(options?: TreeMarkdownOptions) {
-  return (tree: MdastNode) => transformNode(tree, options);
-}
-
-export default TreeMarkdown;

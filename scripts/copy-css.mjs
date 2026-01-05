@@ -1,3 +1,4 @@
+// Build step: ship CSS alongside compiled JS outputs.
 import { copyFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 

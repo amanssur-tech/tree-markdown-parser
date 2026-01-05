@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { readFile, writeFile, mkdtemp, rm, copyFile } from "node:fs/promises";
+// CLI preprocessing pipeline for tree blocks, plus Pandoc/preview helpers.
+import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
@@ -14,10 +15,10 @@ import {
 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
-import { parseTreeBlock } from "../parser/parseTreeBlock.js";
+import { defaultTreeTheme } from "../renderer/defaultTheme.js";
 import { renderHTML } from "../renderer/renderHTML.js";
 import { renderText } from "../renderer/renderText.js";
-import { defaultTreeTheme } from "../renderer/defaultTheme.js";
+import { parseTreeBlock } from "../tree/parseTreeBlock.js";
 
 interface CliOptions {
   command: "preprocess" | "preview";
@@ -42,6 +43,65 @@ interface PandocRunOptions {
   verbose: boolean;
   cssPaths?: string[];
   cwd?: string;
+}
+
+const fencePattern = /^(`{3,})\s*tree\b.*$/;
+const closingPattern = /^(`{3,})\s*$/;
+
+const cssStyleTag = `<style data-tree-markdown="true">\n${defaultTreeTheme}\n</style>`;
+const cssLinkTag =
+  '<link rel="stylesheet" href="tree.css" data-tree-markdown="true" />';
+const cssMarker = 'data-tree-markdown="true"';
+
+const pandocCssPath = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../renderer/tree.css",
+);
+const pandocDocCssPath = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../renderer/tmd-doc.css",
+);
+
+async function run(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2));
+  const isPandocMode = Boolean(options.to);
+  const isPreviewMode = options.command === "preview";
+  validateOptions(options, isPandocMode, isPreviewMode);
+
+  const input = await readInput(options);
+  const output = replaceTreeBlocks(input, {
+    ...options,
+    htmlOnly: isPandocMode || isPreviewMode ? true : options.htmlOnly,
+  });
+
+  if (isPreviewMode) {
+    await runPreview(options, output);
+    return;
+  }
+  if (isPandocMode) {
+    await runPandocMode(options, output);
+    return;
+  }
+  let outputPath = options.output;
+  if (!outputPath && options.input) {
+    const parsed = parse(options.input);
+    outputPath = join(
+      parsed.dir || process.cwd(),
+      `${parsed.name}_rendered${parsed.ext || ".md"}`,
+    );
+  }
+  if (outputPath) {
+    await writeFile(outputPath, output, "utf8");
+    return;
+  }
+  process.stdout.write(output);
+}
+
+try {
+  await run();
+} catch (err) {
+  process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
+  process.exit(1);
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -215,9 +275,6 @@ async function readStdin(): Promise<string> {
   });
 }
 
-const fencePattern = /^(`{3,})\s*tree\b.*$/;
-const closingPattern = /^(`{3,})\s*$/;
-
 function matchFence(line: string): string | null {
   const match = fencePattern.exec(line);
   return match?.[1] ?? null;
@@ -252,20 +309,6 @@ function renderReplacement(rawTree: string, options: CliOptions): string[] {
   }
   return [renderHTML(tree)];
 }
-
-const cssStyleTag = `<style data-tree-markdown="true">\n${defaultTreeTheme}\n</style>`;
-const cssLinkTag =
-  '<link rel="stylesheet" href="tree.css" data-tree-markdown="true" />';
-const cssMarker = 'data-tree-markdown="true"';
-
-const pandocCssPath = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  "../renderer/tree.css",
-);
-const pandocDocCssPath = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  "../renderer/tmd-doc.css",
-);
 
 function shouldInjectCss(markdown: string, options: CliOptions): boolean {
   if (options.text || options.htmlOnly) {
@@ -358,6 +401,7 @@ async function runPandoc(options: PandocRunOptions): Promise<void> {
   }
   args.push(...options.extraArgs);
   if (options.format === "pdf" && !hasPdfEngineArg(options.extraArgs)) {
+    // Prefer WeasyPrint for consistent CSS support in PDFs.
     args.push("--pdf-engine=weasyprint");
   }
   if (options.format === "html" && !hasStandaloneArg(options.extraArgs)) {
@@ -627,46 +671,4 @@ async function startPreviewServer(root: string, entry: string): Promise<void> {
   const url = `http://127.0.0.1:${address.port}/${entry}`;
   process.stdout.write(`Preview: ${url}\n`);
   openUrl(url);
-}
-
-async function run(): Promise<void> {
-  const options = parseArgs(process.argv.slice(2));
-  const isPandocMode = Boolean(options.to);
-  const isPreviewMode = options.command === "preview";
-  validateOptions(options, isPandocMode, isPreviewMode);
-
-  const input = await readInput(options);
-  const output = replaceTreeBlocks(input, {
-    ...options,
-    htmlOnly: isPandocMode || isPreviewMode ? true : options.htmlOnly,
-  });
-
-  if (isPreviewMode) {
-    await runPreview(options, output);
-    return;
-  }
-  if (isPandocMode) {
-    await runPandocMode(options, output);
-    return;
-  }
-  let outputPath = options.output;
-  if (!outputPath && options.input) {
-    const parsed = parse(options.input);
-    outputPath = join(
-      parsed.dir || process.cwd(),
-      `${parsed.name}_rendered${parsed.ext || ".md"}`,
-    );
-  }
-  if (outputPath) {
-    await writeFile(outputPath, output, "utf8");
-    return;
-  }
-  process.stdout.write(output);
-}
-
-try {
-  await run();
-} catch (err) {
-  process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
-  process.exit(1);
 }

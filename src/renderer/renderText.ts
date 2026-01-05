@@ -1,4 +1,5 @@
-import { TreeNode } from "../types/tree.js";
+// Plain-text rendering primarily for fallback/debug outputs.
+import { TreeNode } from "../tree/types.js";
 
 export function renderText(nodes: TreeNode[]): string {
   const lines: string[] = [];

@@ -1,16 +1,16 @@
-import { TreeNode } from "../types/tree.js";
+// Render tree AST into HTML with semantic <details>/<summary> for folders.
+import { TreeNode } from "../tree/types.js";
 
 export interface RenderHTMLOptions {
   rootClass?: string;
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+export function renderHTML(
+  nodes: TreeNode[],
+  options?: RenderHTMLOptions,
+): string {
+  const rootClass = options?.rootClass ?? "tree";
+  return `<ul class="${rootClass}">${nodes.map(renderNode).join("")}</ul>`;
 }
 
 function renderNode(node: TreeNode): string {
@@ -28,10 +28,11 @@ function renderNode(node: TreeNode): string {
   return `<li class="${classes}" data-type="${node.type}"><span class="tree-label">${label}</span>${children}</li>`;
 }
 
-export function renderHTML(
-  nodes: TreeNode[],
-  options?: RenderHTMLOptions,
-): string {
-  const rootClass = options?.rootClass ?? "tree";
-  return `<ul class="${rootClass}">${nodes.map(renderNode).join("")}</ul>`;
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }

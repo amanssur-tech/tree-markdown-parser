@@ -1,8 +1,5 @@
-import { TreeNode } from "../types/tree.js";
-
-function escapeLabel(value: string): string {
-  return value.replaceAll('"', String.raw`\"`);
-}
+// Let Mermaid output keep a stable node id list for easier diffing in docs.
+import { TreeNode } from "../tree/types.js";
 
 export function renderMermaid(nodes: TreeNode[]): string {
   const lines: string[] = ["graph TD"];
@@ -26,4 +23,8 @@ export function renderMermaid(nodes: TreeNode[]): string {
   }
 
   return lines.join("\n");
+}
+
+function escapeLabel(value: string): string {
+  return value.replaceAll('"', String.raw`\"`);
 }

@@ -1,3 +1,4 @@
+/* Default tree styles for HTML output; keep readable for customization. */
 .tree {
   --tree-font: "IBM Plex Mono", "Courier New", monospace;
   --tree-text: #1b1b1b;

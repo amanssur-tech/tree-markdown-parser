@@ -1,3 +1,4 @@
+// Demo helper: render Mermaid output and open Mermaid Live for inspection.
 import { readFile } from "node:fs/promises";
 import { deflateSync } from "node:zlib";
 import { spawn } from "node:child_process";

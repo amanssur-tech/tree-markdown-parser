@@ -1,3 +1,4 @@
+// Default tree styles are embedded in CLI and preview flows for portability.
 export const defaultTreeTheme = String.raw`
 .tree {
   --tree-font: "IBM Plex Mono", "Courier New", monospace;

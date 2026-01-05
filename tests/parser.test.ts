@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+// Parser behavior tests to guard strict/tolerant tree handling.
+import { describe, expect, it } from "vitest";
 import { parseTreeBlock } from "../src/index.js";
 
 describe("parseTreeBlock", () => {

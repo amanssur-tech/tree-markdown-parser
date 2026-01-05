@@ -1,3 +1,4 @@
+// Dev preview: rebuild demo HTML on markdown changes for fast iteration.
 import { readFile, writeFile } from "node:fs/promises";
 import { watch } from "node:fs";
 import { resolve } from "node:path";

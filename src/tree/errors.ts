@@ -1,3 +1,4 @@
+// Parsing errors include line numbers to keep tree cleanup fast for users.
 export class TreeParseError extends Error {
   readonly line: number;
 

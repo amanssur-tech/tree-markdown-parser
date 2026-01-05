@@ -1,5 +1,6 @@
-import { ParseOptions, ParseMode } from "../types/tree.js";
-import { TreeParseError } from "../types/errors.js";
+// Normalize mixed tree indentation styles into level + content boundaries.
+import { TreeParseError } from "./errors.js";
+import { ParseMode, ParseOptions } from "./types.js";
 
 export interface ResolvedOptions {
   mode: ParseMode;
@@ -18,6 +19,28 @@ export function resolveOptions(options?: ParseOptions): ResolvedOptions {
     tabWidth: options?.tabWidth ?? 2,
     indentWidth: options?.indentWidth ?? 2,
   };
+}
+
+export function parseIndentation(
+  rawLine: string,
+  options: ResolvedOptions,
+  lineNumber: number,
+): IndentParseResult {
+  const line = normalizeIndentation(rawLine, options, lineNumber);
+  const indent = readIndentUnits(line, options, lineNumber);
+  const branch = readBranchPrefix(line, indent.cursor);
+  const level = indent.level + branch.levelBoost;
+  const cursor = branch.cursor;
+  const content = line.slice(cursor).trim();
+
+  if (!content) {
+    throwIfStrict(
+      options.mode,
+      new TreeParseError("Empty tree line", lineNumber),
+    );
+  }
+
+  return { level, content };
 }
 
 function throwIfStrict(mode: ParseMode, error: Error | string): void {
@@ -150,26 +173,4 @@ function readBranchPrefix(
   }
 
   return { levelBoost: 1, cursor: next };
-}
-
-export function parseIndentation(
-  rawLine: string,
-  options: ResolvedOptions,
-  lineNumber: number,
-): IndentParseResult {
-  const line = normalizeIndentation(rawLine, options, lineNumber);
-  const indent = readIndentUnits(line, options, lineNumber);
-  const branch = readBranchPrefix(line, indent.cursor);
-  const level = indent.level + branch.levelBoost;
-  const cursor = branch.cursor;
-  const content = line.slice(cursor).trim();
-
-  if (!content) {
-    throwIfStrict(
-      options.mode,
-      new TreeParseError("Empty tree line", lineNumber),
-    );
-  }
-
-  return { level, content };
 }

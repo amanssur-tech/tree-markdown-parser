@@ -1,3 +1,4 @@
+// Shared tree AST types used across parsing and rendering.
 export type TreeNodeType = "file" | "folder";
 
 export interface TreeNode {

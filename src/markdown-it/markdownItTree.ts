@@ -1,6 +1,7 @@
-import { parseTreeBlock } from "../parser/parseTreeBlock.js";
+// Markdown-it plugin that replaces ```tree fences with rendered HTML.
+import { parseTreeBlock } from "../tree/parseTreeBlock.js";
 import { renderHTML } from "../renderer/renderHTML.js";
-import type { ParseOptions } from "../types/tree.js";
+import type { ParseOptions } from "../tree/types.js";
 
 interface MarkdownItInstance {
   renderer: {
@@ -19,13 +20,6 @@ interface MarkdownItInstance {
 export interface MarkdownItTreeOptions {
   parse?: ParseOptions;
   htmlRootClass?: string;
-}
-
-function getFenceLang(info?: string): string {
-  if (!info) {
-    return "";
-  }
-  return info.trim().split(/\s+/)[0] ?? "";
 }
 
 export function markdownItTree(
@@ -55,6 +49,7 @@ export function markdownItTree(
     }
 
     if (fallbackFence) {
+      // Preserve downstream renderer behavior for non-tree fences.
       return fallbackFence(tokens, idx, fenceOptions, env, self);
     }
     return self.renderToken(tokens, idx, fenceOptions);
@@ -63,3 +58,10 @@ export function markdownItTree(
 }
 
 export default markdownItTree;
+
+function getFenceLang(info?: string): string {
+  if (!info) {
+    return "";
+  }
+  return info.trim().split(/\s+/)[0] ?? "";
+}

@@ -1,3 +1,4 @@
+// Lightweight tree renderer for VS Code preview to avoid runtime dependencies.
 export interface TreeRendererInstance {
   renderer: {
     rules: {
@@ -28,6 +29,32 @@ interface LineToken {
   name: string;
   level: number;
   explicitFolder: boolean;
+}
+
+export default function treeRenderer(md: TreeRendererInstance): void {
+  const fallbackFence = md.renderer.rules.fence;
+
+  const fenceRule = (
+    tokens: Array<{ info?: string; content?: string }>,
+    idx: number,
+    fenceOptions: unknown,
+    env: unknown,
+    self: { renderToken: (t: unknown, i: number, o: unknown) => string },
+  ): string => {
+    const token = tokens[idx];
+    const lang = token?.info?.trim().split(/\s+/)[0] ?? "";
+    if (lang === "tree") {
+      const tree = parseTreeBlock(token.content ?? "");
+      return renderHTML(tree);
+    }
+
+    if (fallbackFence) {
+      // Preserve upstream fence rendering for non-tree blocks.
+      return fallbackFence(tokens, idx, fenceOptions, env, self);
+    }
+    return self.renderToken(tokens, idx, fenceOptions);
+  };
+  md.renderer.rules.fence = fenceRule;
 }
 
 function parseTreeBlock(input: string): TreeNode[] {
@@ -225,29 +252,4 @@ function renderHTML(nodes: TreeNode[]): string {
   };
 
   return `<ul class="tree">${nodes.map(renderNode).join("")}</ul>`;
-}
-
-export default function treeRenderer(md: TreeRendererInstance): void {
-  const fallbackFence = md.renderer.rules.fence;
-
-  const fenceRule = (
-    tokens: Array<{ info?: string; content?: string }>,
-    idx: number,
-    fenceOptions: unknown,
-    env: unknown,
-    self: { renderToken: (t: unknown, i: number, o: unknown) => string },
-  ): string => {
-    const token = tokens[idx];
-    const lang = token?.info?.trim().split(/\s+/)[0] ?? "";
-    if (lang === "tree") {
-      const tree = parseTreeBlock(token.content ?? "");
-      return renderHTML(tree);
-    }
-
-    if (fallbackFence) {
-      return fallbackFence(tokens, idx, fenceOptions, env, self);
-    }
-    return self.renderToken(tokens, idx, fenceOptions);
-  };
-  md.renderer.rules.fence = fenceRule;
 }

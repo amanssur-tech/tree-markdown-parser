@@ -1,6 +1,7 @@
-import { LineToken, ParseOptions } from "../types/tree.js";
-import { TreeParseError } from "../types/errors.js";
-import { parseIndentation, resolveOptions } from "../utils/indentation.js";
+// Tokenize raw tree text into normalized line tokens, preserving strict/tolerant intent.
+import { parseIndentation, resolveOptions } from "./indentation.js";
+import { TreeParseError } from "./errors.js";
+import { LineToken, ParseOptions } from "./types.js";
 
 export function tokenizeLines(
   input: string,
@@ -21,6 +22,7 @@ export function tokenizeLines(
     const name = explicitFolder ? content.slice(0, -1).trim() : content.trim();
 
     if (!name) {
+      // In strict mode, an empty label is almost always a copy/paste error.
       if (resolved.mode === "strict") {
         throw new TreeParseError("Invalid empty node name", lineNumber);
       }
