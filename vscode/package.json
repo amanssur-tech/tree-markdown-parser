@@ -1,10 +1,11 @@
 {
   "name": "vscode-tree-markdown",
-  "displayName": "Tree Markdown",
+  "displayName": "Tree Markdown Preview",
   "description": "Render fenced tree blocks in VS Code Markdown preview.",
-  "version": "0.1.0",
-  "publisher": "local",
+  "version": "0.1.1",
+  "publisher": "amanssur",
   "author": "Amanullah Manssur",
+  "icon": "icon.png",
   "license": "MIT",
   "keywords": [
     "markdown",
@@ -20,6 +21,14 @@
     "Extension Packs",
     "Formatters"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amanssur-tech/tree-markdown-parser"
+  },
+  "homepage": "https://amanssur.com/portfolio/tree-markdown",
+  "bugs": {
+    "url": "https://github.com/amanssur-tech/tree-markdown-parser/issues"
+  },
   "main": "./out/extension.js",
   "activationEvents": [
     "onCommand:markdown.showPreview",

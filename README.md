@@ -9,7 +9,7 @@ tree-markdown-parser parses fenced `tree` blocks into a structured AST and rende
 
 The tool integrates via a CLI, Markdown plugins, and a VS Code extension. Mermaid and plain-text outputs are also available.
 
-<img width="1440" height="900" alt="before-after-dark" src="https://github.com/user-attachments/assets/1a119a74-0c83-43b5-9e3b-4d93a7cac4f6" />
+<img alt="Before and After" src="https://github.com/user-attachments/assets/1a119a74-0c83-43b5-9e3b-4d93a7cac4f6" style="max-width:100%; height:auto;" />
 
 ## Install
 
@@ -83,7 +83,7 @@ Export a markdown file with Pandoc through `tmd` to other formats like html or p
 
 This provides a clean, readable layout for both the document content and the rendered trees. In order to use Pandoc, you need to install Pandoc on your system.
 
-<img width="1440" height="900" alt="md-pdf" src="https://github.com/user-attachments/assets/23f286ae-1cee-452b-98f1-6ba149bc01f9" />
+<img alt="Markdown PDF example" src="https://github.com/user-attachments/assets/23f286ae-1cee-452b-98f1-6ba149bc01f9" style="max-width:100%; height:auto;" />
 
 #### Pandoc installation
 
@@ -149,9 +149,8 @@ The extension works entirely at preview time:
 It injects the tree stylesheet and replaces fenced `tree` blocks in the preview with the same HTML renderer used by the core library.
 
 ### Where to get
-
-VS Code Marketplace:  
-<https://marketplace.visualstudio.com/items?itemName=><publisher>.vscode-tree-markdown
+  
+[Visual Studio Marketplace - Tree Markdown Preview](https://marketplace.visualstudio.com/items?itemName=amanssur.vscode-tree-markdown)
 
 ### Source
 

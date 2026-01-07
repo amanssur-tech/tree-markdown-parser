@@ -4,7 +4,7 @@ Render ASCII directory trees correctly in VS Code’s Markdown preview.
 
 This extension detects fenced ```tree blocks and replaces them in the preview with structured, collapsible HTML trees. Your Markdown files are never modified.
 
-<img width="1440" height="900" alt="vsc-extension-dark" src="https://github.com/user-attachments/assets/2713c637-e4f2-465c-abb2-45926452323f" />
+<img alt="VS Code screenshot" src="https://github.com/user-attachments/assets/2713c637-e4f2-465c-abb2-45926452323f" style="max-width:100%; height:auto;" />
 
 ## Why this extension exists
 
@@ -22,9 +22,8 @@ src/
 
 into a clean, structured tree in the Markdown preview, with native folder collapsing and consistent layout:
 
-<img width="792" height="150" alt="Screenshot 2026-01-05 at 23 56 05" src="https://github.com/user-attachments/assets/023febc0-ebee-4818-9edb-6e72fedeadb4" />
-<img width="792" height="154" alt="Screenshot 2026-01-05 at 23 56 37" src="https://github.com/user-attachments/assets/9c02412f-ffe2-4b9c-82ae-89635cfb6811" />
-
+<img alt="Screenshot 2026-01-05 at 23 56 05" src="https://github.com/user-attachments/assets/023febc0-ebee-4818-9edb-6e72fedeadb4" style="max-width:100%; height:auto;" />
+<img alt="Screenshot 2026-01-05 at 23 56 37" src="https://github.com/user-attachments/assets/9c02412f-ffe2-4b9c-82ae-89635cfb6811" style="max-width:100%; height:auto;" />
 
 ## What this extension does
 
@@ -63,7 +62,7 @@ src/
 
 That’s it. The tree renders automatically in the preview.
 
-<img width="1440" height="900" alt="vsc-extension" src="https://github.com/user-attachments/assets/ff9411d0-5582-4b5a-b107-09ce4df91a02" />
+<img alt="Rendered tree" src="https://github.com/user-attachments/assets/ff9411d0-5582-4b5a-b107-09ce4df91a02" style="max-width:100%; height:auto;" />
 
 ## Notes
 
@@ -81,4 +80,4 @@ This extension is part of the **tree-markdown-parser** project, which also provi
 
 Those features are intentionally out of scope for this VS Code extension.
 
-Repository: <https://github.com/amanssur-tech/tree-markdown-parser/>
+[GitHub - Tree Markdown Parser](https://github.com/amanssur-tech/tree-markdown-parser/)
