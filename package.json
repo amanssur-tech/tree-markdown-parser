@@ -2,7 +2,6 @@
   "name": "tree-markdown-parser",
   "version": "0.1.0",
   "description": "Parse fenced tree blocks into an AST and render rich HTML or other outputs.",
-  "type": "module",
   "keywords": [
     "markdown",
     "markdown-parser",
@@ -15,15 +14,28 @@
     "html-renderer",
     "developer-tools"
   ],
+  "homepage": "https://amanssur.com/portfolio/tree-markdown",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amanssur-tech/tree-markdown-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amanssur-tech/tree-markdown-parser/issues"
+  },
   "author": "Amanullah Manssur",
   "license": "MIT",
   "packageManager": "pnpm@10.27.0",
+  "type": "module",
   "engines": {
     "node": ">=22"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -45,7 +57,8 @@
     }
   },
   "bin": {
-    "tmd": "./dist/cli/preprocess.js"
+    "tree-markdown-parser": "dist/cli/preprocess.js",
+    "tmd": "dist/cli/preprocess.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && node tooling/copy-css.mjs",
@@ -58,7 +71,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "check": "pnpm lint && pnpm typecheck",
     "prettier": "prettier --write .",
-    "contents": "local/project_contents.sh"
+    "contents": "local/project_contents.sh",
+    "prepare": "pnpm build && chmod +x dist/cli/preprocess.js"
+  },
+  "dependencies": {
+    "eslint-plugin-unused-imports": "^4.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -73,8 +90,5 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.51.0",
     "vitest": "^4.0.16"
-  },
-  "dependencies": {
-    "eslint-plugin-unused-imports": "^4.3.0"
   }
 }

@@ -13,10 +13,22 @@ The tool integrates via a CLI, Markdown plugins, and a VS Code extension. Mermai
 
 ## Install
 
+### macOS (Homebrew)
+
 ```bash
-pnpm i tree-markdown-parser
-npm i tree-markdown-parser
-yarn add tree-markdown-parser
+brew tap amanssur-tech/tmd
+brew install tmd
+```
+
+### Node.js (npm / pnpm / yarn)
+
+```bash
+npm install -g tree-markdown-parser
+# or
+pnpm add -g tree-markdown-parser
+# (needs 'pnpm setup' if not done already)
+# or
+yarn global add tree-markdown-parser
 ```
 
 Run the CLI without installing:
