@@ -9,6 +9,8 @@ tree-markdown-parser parses fenced `tree` blocks into a structured AST and rende
 
 The tool integrates via a CLI, Markdown plugins, and a VS Code extension. Mermaid and plain-text outputs are also available.
 
+For architecture and design decisions, see the [technical case study](https://amanssur.com/portfolio/tree-markdown).
+
 <img alt="Before and After" src="https://github.com/user-attachments/assets/1a119a74-0c83-43b5-9e3b-4d93a7cac4f6" style="max-width:100%; height:auto;" />
 
 ## Install
@@ -38,6 +40,12 @@ npx tree-markdown-parser --help
 ```
 
 The CLI is exposed as `tmd` after installation. Use `-h/--help` to list all flags and `-v/--version` to print the current version.
+
+### VS Code
+
+Install [Tree Markdown Preview](https://marketplace.visualstudio.com/items?itemName=amanssur.vscode-tree-markdown) from the Visual Studio Marketplace for automatic tree rendering in Markdown previews.
+
+See [VS Code Extension](#vs-code-extension) for details.
 
 ## Table of Contents
 
@@ -114,7 +122,7 @@ tmd preview input.md
 Export a markdown to html:
 
 ```bash
-tmd input.md --to html output.pdf
+tmd input.md --to html output.html
 ```
 
 You can replace `html` with any Pandoc-supported output format, such as `pdf`, `docx`, or `latex`:
